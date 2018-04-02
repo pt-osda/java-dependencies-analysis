@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadata>
+  <groupId>pt.osda.OSDA-plugin</groupId>
+  <artifactId>OSDA-plugin</artifactId>
+  <version>1.0-SNAPSHOT</version>
+  <versioning>
+    <snapshot>
+      <timestamp>20180402.152943</timestamp>
+      <buildNumber>1</buildNumber>
+    </snapshot>
+    <lastUpdated>20180402152943</lastUpdated>
+  </versioning>
+</metadata>
