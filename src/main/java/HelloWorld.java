@@ -1,9 +1,6 @@
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.ConfigurationContainer;
-import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.artifacts.DependencySet;
+import org.gradle.api.artifacts.*;
 import org.gradle.api.logging.Logger;
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -17,6 +14,7 @@ public class HelloWorld implements Plugin<Project> {
         Logger logger = project.getLogger();
         logger.info(String.format("Hello World my getName is %s", project.getName()));
 
+        //project.getConfigurations().getByName("poms").getArtifacts().getFiles().
         try {
             PrintWriter writer = new PrintWriter("Report.txt");
             BufferedReader reader = new BufferedReader(new FileReader("Prototipo.txt"));
@@ -36,29 +34,18 @@ public class HelloWorld implements Plugin<Project> {
             e.printStackTrace();
         }
 
-        System.out.println("$local");
-        Set<Project> subProjects = project.getSubprojects();
 
         ConfigurationContainer configurationContainer = project.getConfigurations();
 
-        for (Configuration configuration : configurationContainer) {
-            logger.info(String.format("Configuration is %s", configuration.getName()));
-        }
-
         Configuration configuration = configurationContainer.getByName("compile");
 
+        //configuration.
         DependencySet dependencySet = configuration.getDependencies();
 
         for (Dependency dependency : dependencySet) {
             logger.info(String.format("Compile Configuration Dependency %s", dependency.getName()));
+            //Project
+            //dependency.get
         }
-
-
-        int count = 1;
-        for (Project subProject : subProjects) {
-            logger.info(String.format("Sub Project Nr. %s is named %s", count++, subProject.getName()));
-        }
-
-        logger.info(String.format("This Project contains %s subproject", count));
     }
 }
