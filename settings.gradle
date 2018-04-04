@@ -1,2 +1,1 @@
-rootProject.name = 'OSDA-plugin'
-include 'Osda'
+rootProject.name = 'java-dependencies-analysis'
