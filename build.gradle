@@ -37,44 +37,47 @@ signing {
     sign configurations.archives
 }
 
-uploadArchives {
-    repositories {
-        mavenDeployer {
-            beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
+def doUploadArchives = project.hasProperty('ossrhUsername') && project.hasProperty('ossrhPassword')
+if (doUploadArchives) {
+    uploadArchives {
+        repositories {
+            mavenDeployer {
+                beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
 
-            repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
-                authentication(userName: ossrhUsername, password: ossrhPassword)
-            }
-
-            snapshotRepository(url: "https://oss.sonatype.org/content/repositories/snapshots/") {
-                authentication(userName: ossrhUsername, password: ossrhPassword)
-            }
-
-            pom.project {
-                name 'OSDA - Open Source Dependencies Analysis'
-                packaging 'jar'
-                // optionally artifactId can be defined here
-                description 'Analyse Open Source dependencies in projects development. Aplication to analyse security and license aspects in Open Source project\'s dependencies, applicable to Java platform.'
-                url 'https://github.com/pt-osda/java-dependencies-analysis'
-
-                scm {
-                    connection 'scm:git:git://github.com/pt-osda/java-dependencies-analysis.git'
-                    developerConnection 'scm:git:ssh://github.com:pt-osda/java-dependencies-analysis.git'
-                    url 'https://github.com/pt-osda/java-dependencies-analysis.git'
+                repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
+                    authentication(userName: ossrhUsername, password: ossrhPassword)
                 }
 
-                licenses {
-                    license {
-                        name 'BSD 3-Clause License'
-                        url 'https://opensource.org/licenses/BSD-3-Clause'
+                snapshotRepository(url: "https://oss.sonatype.org/content/repositories/snapshots/") {
+                    authentication(userName: ossrhUsername, password: ossrhPassword)
+                }
+
+                pom.project {
+                    name 'OSDA - Open Source Dependencies Analysis'
+                    packaging 'jar'
+                    // optionally artifactId can be defined here
+                    description 'Analyse Open Source dependencies in projects development. Aplication to analyse security and license aspects in Open Source project\'s dependencies, applicable to Java platform.'
+                    url 'https://github.com/pt-osda/java-dependencies-analysis'
+
+                    scm {
+                        connection 'scm:git:git://github.com/pt-osda/java-dependencies-analysis.git'
+                        developerConnection 'scm:git:ssh://github.com:pt-osda/java-dependencies-analysis.git'
+                        url 'https://github.com/pt-osda/java-dependencies-analysis.git'
                     }
-                }
 
-                developers {
-                    developer {
-                        id 'RuiDTLima'
-                        name 'Rui Diogo Tomás Lima'
-                        email 'rui_lima24@hotmail.com'
+                    licenses {
+                        license {
+                            name 'BSD 3-Clause License'
+                            url 'https://opensource.org/licenses/BSD-3-Clause'
+                        }
+                    }
+
+                    developers {
+                        developer {
+                            id 'RuiDTLima'
+                            name 'Rui Diogo Tomás Lima'
+                            email 'rui_lima24@hotmail.com'
+                        }
                     }
                 }
             }
