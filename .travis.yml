@@ -1,2 +1,5 @@
 language: java
 script: ./gradlew
+
+before_install:
+ - chmod +x gradlew
