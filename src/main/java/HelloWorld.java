@@ -14,7 +14,6 @@ public class HelloWorld implements Plugin<Project> {
         logger.info("Source file");
         try {
             File file = project.getBuildscript().getSourceFile();
-            long size = file.length();
             FileReader reader = new FileReader(file);
             char[] line = new char[1024];
             while (reader.read(line) != -1){
