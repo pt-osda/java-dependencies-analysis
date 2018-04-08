@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>com.github.pt-osda.java-dependencies-analysis</groupId>
+  <artifactId>java-dependencies-analysis</artifactId>
+  <version>1.0.0</version>
+
+  <name>OSDA - Open Source Dependencies Analysis</name>
+  <description>Analyse Open Source dependencies in projects development. Aplication to analyse security and license aspects in Open Source project's dependencies, applicable to Java platform.</description>
+  <url>https://github.com/pt-osda/java-dependencies-analysis</url>
+
+  <licenses>
+    <license>
+      <name>BSD 3-Clause License</name>
+      <url>https://opensource.org/licenses/BSD-3-Clause</url>
+    </license>
+  </licenses>
+
+  <developers>
+    <developer>
+      <name>Rui Diogo Tomás Lima</name>
+          <email>rui_lima24@hotmail.com</email>
+      <organization>pt-osda</organization>
+      <organizationUrl>https://github.com/pt-osda</organizationUrl>
+    </developer>
+  </developers>
+
+    <scm>
+        <connection>scm:git:git://github.com/pt-osda/java-dependencies-analysis.git</connection>
+        <developerConnection>scm:git:ssh://github.com:pt-osda/java-dependencies-analysis.git</developerConnection>
+        <url>https://github.com/pt-osda/java-dependencies-analysis</url>
+    </scm>
+</project>
