@@ -33,12 +33,12 @@ artifacts {
     archives javadocJar, sourcesJar
 }
 
-signing {
-    sign configurations.archives
-}
-
 def doUploadArchives = project.hasProperty('ossrhUsername') && project.hasProperty('ossrhPassword')
 if (doUploadArchives) {
+    signing {
+        sign configurations.archives
+    }
+
     uploadArchives {
         repositories {
             mavenDeployer {
