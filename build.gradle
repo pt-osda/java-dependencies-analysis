@@ -1,5 +1,9 @@
-/*group 'com.github.pt-osda.java-dependencies-analysis'
-version "1.0.0"*/
+plugins {
+    id "com.jfrog.bintray" version "1.7.3"
+}
+
+group 'com.github.pt-osda.java-dependencies-analysis'
+version "1.0.0"
 
 apply plugin: 'java'
 apply plugin: 'maven'
@@ -7,16 +11,24 @@ apply plugin: 'maven-publish'
 apply plugin: 'signing'
 
 sourceCompatibility = 1.8
-/*
-repositories {
-    mavenCentral()
+
+bintray {
+    user = System.getenv('BINTRAY_USER')
+    key = System.getenv('BINTRAY_KEY')
+    publications = [ "mavenJava" ]
+    pkg {
+        repo = "pt-osda"
+        name = "java-dependencies-analysis"
+        licenses = [ "BSD-3-Clause" ]
+        vcsUrl = "https://github.com/pt-osda/java-dependencies-analysis.git"
+
+        version {
+            name = "1.0.0"
+            released = new Date()
+        }
+    }
 }
 
-dependencies {
-    compile group: 'com.fasterxml.jackson.dataformat', name: 'jackson-dataformat-xml', version: '2.9.5'
-    testCompile group: 'junit', name: 'junit', version: '4.12'
-}*/
-/*
 apply plugin: 'java-gradle-plugin'
 
 task javadocJar(type: Jar) {
@@ -91,8 +103,9 @@ publishing {
             from components.java
         }
     }
-}*/
+}
 
+/** To publish to gradle plugins
 // First, apply the publishing plugin
 buildscript {
     repositories {
@@ -121,7 +134,6 @@ dependencies {
     compile gradleApi()
     compile group: 'com.fasterxml.jackson.dataformat', name: 'jackson-dataformat-xml', version: '2.9.5'
     testCompile group: 'junit', name: 'junit', version: '4.12'
-    // other dependencies that your plugin requires
 }
 
 // Unless overridden in the pluginBundle config DSL, the project version will
@@ -139,6 +151,36 @@ pluginBundle {
         greetingsPlugin {
             id = 'com.github.pt-osda.java-dependencies-analysis'
             displayName = 'Java Dependencies Analysis'
+
+            /*pom.project {
+                name 'OSDA - Open Source Dependencies Analysis'
+                packaging 'jar'
+                // optionally artifactId can be defined here
+                description 'Analyse Open Source dependencies in projects development. Aplication to analyse security and license aspects in Open Source project\'s dependencies, applicable to Java platform.'
+                url 'https://github.com/pt-osda/java-dependencies-analysis'
+
+                scm {
+                    connection 'scm:git:git://github.com/pt-osda/java-dependencies-analysis.git'
+                    developerConnection 'scm:git:ssh://github.com:pt-osda/java-dependencies-analysis.git'
+                    url 'https://github.com/pt-osda/java-dependencies-analysis.git'
+                }
+
+                licenses {
+                    license {
+                        name 'BSD 3-Clause License'
+                        url 'https://opensource.org/licenses/BSD-3-Clause'
+                    }
+                }
+
+                developers {
+                    developer {
+                        id 'RuiDTLima'
+                        name 'Rui Diogo Tomás Lima'
+                        email 'rui_lima24@hotmail.com'
+                    }
+                }
+            }
         }
     }
 }
+ */

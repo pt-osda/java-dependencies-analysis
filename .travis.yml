@@ -1,5 +1,5 @@
 language: java
-script: ./gradlew
+script: ./gradlew --info
 
 before_install:
  - chmod +x gradlew
