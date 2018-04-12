@@ -57,7 +57,6 @@ public class HelloWorld implements Plugin<Project> {
                 if (licenses.size() != 0) {
                     ZipEntry licenseFile = jarFile.getEntry(licenses.get(0));
 
-                    InputStreamReader inputStreamReader = new InputStreamReader(jarFile.getInputStream(licenseFile));
                     BufferedReader reader = new BufferedReader(new InputStreamReader(jarFile.getInputStream(licenseFile)));
 
                     String line = reader.readLine();
