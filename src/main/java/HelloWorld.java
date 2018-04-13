@@ -1,6 +1,6 @@
+import org.gradle.api.GradleException;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
@@ -13,7 +13,7 @@ import java.util.zip.ZipEntry;
 
 public class HelloWorld implements Plugin<Project> {
     private Logger logger;
-    private final String[] VALID_LICENSE = {"MIT"};
+    private final String[] VALID_LICENSE = {"MIT License"};
 
     @Override
     public void apply(Project project) { // TODO o que fazer com as dependências que não têm ficheiro de licenças nem ficheiro pom, talvez ir buscar ao repositório mas qual ?. Validar dependência
@@ -24,9 +24,9 @@ public class HelloWorld implements Plugin<Project> {
 
         Configuration configuration = configurationContainer.getByName("compile");
 
-        Set<ResolvedArtifact> resolvedArtifact = configuration.getResolvedConfiguration().getResolvedArtifacts();
+       /* Set<ResolvedArtifact> resolvedArtifact = configuration.getResolvedConfiguration().getResolvedArtifacts();
 
-/*
+
         for (ResolvedArtifact resolvArtif : resolvedArtifact) {
             FileReader reader = null;
             try {
@@ -51,11 +51,10 @@ public class HelloWorld implements Plugin<Project> {
             try {
                 logger.info("Reading jar file");
                 JarFile jarFile = new JarFile(absoluteFilePath);
-                List<String> licenses = retrieveLicenseFile(jarFile);
-                logger.info(String.format("Jar File has finished read with %s results.\n Trying to retrieve License\n", licenses.size()));
+                String licenseFilePath = retrieveLicenseFile(jarFile);
 
-                if (licenses.size() != 0) {
-                    ZipEntry licenseFile = jarFile.getEntry(licenses.get(0));
+                if (licenseFilePath != null) {
+                    ZipEntry licenseFile = jarFile.getEntry(licenseFilePath);
 
                     BufferedReader reader = new BufferedReader(new InputStreamReader(jarFile.getInputStream(licenseFile)));
 
@@ -63,7 +62,14 @@ public class HelloWorld implements Plugin<Project> {
 
                     while (line.isEmpty())
                         line = reader.readLine();
-                    logger.info(String.format("First line of license is %s \n", line));
+
+                    String newLine = line.trim();
+
+                    logger.info(String.format("First line of license is %s \n", newLine));
+
+                    if (!newLine.equals(VALID_LICENSE[0])){
+                        throw new GradleException("License is invalid!!");
+                    }
                 }
             } catch (IOException e) {
                 e.printStackTrace();
@@ -73,19 +79,17 @@ public class HelloWorld implements Plugin<Project> {
         logger.info("All configuration files were shown");
     }
 
-    private List<String> retrieveLicenseFile(final JarFile jar) throws IOException {
-        final List<String> licenseEntries = new ArrayList<>();
+    private String retrieveLicenseFile(final JarFile jar) {
         final Enumeration<JarEntry> entries = jar.entries();
         while (entries.hasMoreElements()) {
             final JarEntry entry = entries.nextElement();
             logger.info(String.format("New entry %s", entry.getName()));
             final String entryName = (new File(entry.getName())).getName().toLowerCase();
-            if (!entry.isDirectory() && ("license".equals(entryName) || "license.txt".equals(entryName))) {
+            if (!entry.isDirectory() &&  entryName.contains("license")){
                 logger.info("LICENSE Entry found: {}", entry.getName());
-                //entry.
-                licenseEntries.add(entry.getName());
+                return entry.getName();
             }
         }
-        return licenseEntries;
+        return null;
     }
 }
