@@ -1,3 +1,16 @@
+// To publish to gradle plugins
+// First, apply the publishing plugin
+buildscript {
+    repositories {
+        maven {
+            url "https://plugins.gradle.org/m2/"
+        }
+    }
+    dependencies {
+        classpath "com.gradle.publish:plugin-publish-plugin:0.9.10"
+    }
+}
+
 plugins {
     id "com.jfrog.bintray" version "1.7.3"
 }
@@ -105,19 +118,6 @@ publishing {
     }
 }
 
-/** To publish to gradle plugins
-// First, apply the publishing plugin
-buildscript {
-    repositories {
-        maven {
-            url "https://plugins.gradle.org/m2/"
-        }
-    }
-    dependencies {
-        classpath "com.gradle.publish:plugin-publish-plugin:0.9.10"
-    }
-}
-
 apply plugin: "com.gradle.plugin-publish"
 // Apply other plugins here, e.g. java plugin for a plugin written in java or
 // the groovy plugin for a plugin written in groovy
@@ -151,36 +151,6 @@ pluginBundle {
         greetingsPlugin {
             id = 'com.github.pt-osda.java-dependencies-analysis'
             displayName = 'Java Dependencies Analysis'
-
-            /*pom.project {
-                name 'OSDA - Open Source Dependencies Analysis'
-                packaging 'jar'
-                // optionally artifactId can be defined here
-                description 'Analyse Open Source dependencies in projects development. Aplication to analyse security and license aspects in Open Source project\'s dependencies, applicable to Java platform.'
-                url 'https://github.com/pt-osda/java-dependencies-analysis'
-
-                scm {
-                    connection 'scm:git:git://github.com/pt-osda/java-dependencies-analysis.git'
-                    developerConnection 'scm:git:ssh://github.com:pt-osda/java-dependencies-analysis.git'
-                    url 'https://github.com/pt-osda/java-dependencies-analysis.git'
-                }
-
-                licenses {
-                    license {
-                        name 'BSD 3-Clause License'
-                        url 'https://opensource.org/licenses/BSD-3-Clause'
-                    }
-                }
-
-                developers {
-                    developer {
-                        id 'RuiDTLima'
-                        name 'Rui Diogo Tomás Lima'
-                        email 'rui_lima24@hotmail.com'
-                    }
-                }
-            }
         }
     }
 }
- */
