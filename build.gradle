@@ -1,7 +1,14 @@
 // To publish to gradle plugins
 // First, apply the publishing plugin
 buildscript {
+    // Variables
+    ext {
+        CurrentVersion = "1.0.0-SNAPSHOT"
+        CurrentGroup = "com.github.pt-osda.java-dependencies-analysis"
+    }
+
     repositories {
+        mavenLocal()
         maven {
             url "https://plugins.gradle.org/m2/"
         }
@@ -15,19 +22,19 @@ plugins {
     id "com.jfrog.bintray" version "1.7.3"
 }
 
-group 'com.github.pt-osda.java-dependencies-analysis'
-version "1.0.0"
+group CurrentGroup
+version CurrentVersion
 
-apply plugin: 'java'
-apply plugin: 'maven'
-apply plugin: 'maven-publish'
-apply plugin: 'signing'
+apply plugin: "java"
+apply plugin: "maven"
+apply plugin: "maven-publish"
+apply plugin: "signing"
 
 sourceCompatibility = 1.8
 
 bintray {
-    user = System.getenv('BINTRAY_USER')
-    key = System.getenv('BINTRAY_KEY')
+    user = System.getenv("BINTRAY_USER")
+    key = System.getenv("BINTRAY_KEY")
     publications = [ "mavenJava" ]
     pkg {
         repo = "pt-osda"
@@ -36,21 +43,21 @@ bintray {
         vcsUrl = "https://github.com/pt-osda/java-dependencies-analysis.git"
 
         version {
-            name = "1.0.0"
+            name = CurrentVersion
             released = new Date()
         }
     }
 }
 
-apply plugin: 'java-gradle-plugin'
+apply plugin: "java-gradle-plugin"
 
 task javadocJar(type: Jar) {
-    classifier = 'javadoc'
+    classifier = "javadoc"
     from javadoc
 }
 
 task sourcesJar(type: Jar) {
-    classifier = 'sources'
+    classifier = "sources"
     from sourceSets.main.allSource
 }
 
@@ -58,7 +65,7 @@ artifacts {
     archives javadocJar, sourcesJar
 }
 
-def doUploadArchives = project.hasProperty('ossrhUsername') && project.hasProperty('ossrhPassword')
+def doUploadArchives = project.hasProperty("ossrhUsername") && project.hasProperty("ossrhPassword")
 if (doUploadArchives) {
     signing {
         sign configurations.archives
@@ -78,30 +85,30 @@ if (doUploadArchives) {
                 }
 
                 pom.project {
-                    name 'OSDA - Open Source Dependencies Analysis'
+                    name "OSDA - Open Source Dependencies Analysis"
                     packaging 'jar'
                     // optionally artifactId can be defined here
-                    description 'Analyse Open Source dependencies in projects development. Aplication to analyse security and license aspects in Open Source project\'s dependencies, applicable to Java platform.'
-                    url 'https://github.com/pt-osda/java-dependencies-analysis'
+                    description "Analyse Open Source dependencies in projects development. Aplication to analyse security and license aspects in Open Source project\'s dependencies, applicable to Java platform."
+                    url "https://github.com/pt-osda/java-dependencies-analysis"
 
                     scm {
-                        connection 'scm:git:git://github.com/pt-osda/java-dependencies-analysis.git'
-                        developerConnection 'scm:git:ssh://github.com:pt-osda/java-dependencies-analysis.git'
-                        url 'https://github.com/pt-osda/java-dependencies-analysis.git'
+                        connection "scm:git:git://github.com/pt-osda/java-dependencies-analysis.git"
+                        developerConnection "scm:git:ssh://github.com:pt-osda/java-dependencies-analysis.git"
+                        url "https://github.com/pt-osda/java-dependencies-analysis.git"
                     }
 
                     licenses {
                         license {
-                            name 'BSD 3-Clause License'
-                            url 'https://opensource.org/licenses/BSD-3-Clause'
+                            name "BSD 3-Clause License"
+                            url "https://opensource.org/licenses/BSD-3-Clause"
                         }
                     }
 
                     developers {
                         developer {
-                            id 'RuiDTLima'
-                            name 'Rui Diogo Tomás Lima'
-                            email 'rui_lima24@hotmail.com'
+                            id "RuiDTLima"
+                            name "Rui Diogo Tomás Lima"
+                            email "rui_lima24@hotmail.com"
                         }
                     }
                 }
@@ -133,24 +140,20 @@ repositories {
 dependencies {
     compile gradleApi()
     compile group: 'com.fasterxml.jackson.dataformat', name: 'jackson-dataformat-xml', version: '2.9.5'
-    testCompile group: 'junit', name: 'junit', version: '4.12'
+    testCompile group: "junit", name: "junit", version: "4.12"
 }
 
-// Unless overridden in the pluginBundle config DSL, the project version will
-// be used as your plugin version when publishing
-version = "1.0.0"
-group = "com.github.pt-osda.java-dependencies-analysis"
-
 pluginBundle {
-    website = 'https://github.com/pt-osda/java-dependencies-analysis'
-    vcsUrl = 'https://github.com/pt-osda/java-dependencies-analysis'
-    description = 'Analyse Open Source dependencies in projects development. Aplication to analyse security and license aspects in Open Source project\'s dependencies, applicable to Java platform.'
-    tags = ['java', 'gradle', 'dependencies analysis', 'License validation', 'vulnerabilities']
+    website = "https://github.com/pt-osda/java-dependencies-analysis"
+    vcsUrl = "https://github.com/pt-osda/java-dependencies-analysis"
+    description = "Analyse Open Source dependencies in projects development. Aplication to analyse security and license aspects in Open Source project\'s dependencies, applicable to Java platform."
+    tags = ["java", "gradle", "dependencies analysis", "License validation", "vulnerabilities"]
 
     plugins {
         greetingsPlugin {
-            id = 'com.github.pt-osda.java-dependencies-analysis'
-            displayName = 'Java Dependencies Analysis'
+            id = CurrentGroup
+            displayName = "Java Dependencies Analysis"
+            version = CurrentVersion
         }
     }
 }
