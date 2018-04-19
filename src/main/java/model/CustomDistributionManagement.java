@@ -1,4 +1,6 @@
-package model;public class CustomDistributionManagement {
+package model;
+
+public class CustomDistributionManagement {
     private CustomDeploymentRepository repository;
     private CustomDeploymentRepository snapshotRepository;
     private CustomSite site;

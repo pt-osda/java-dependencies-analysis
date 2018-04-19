@@ -1,4 +1,7 @@
-package model;import java.util.List;
+package model;
+
+import java.util.LinkedList;
+import java.util.List;
 
 public class CustomBuild extends CustomBuildBase{
     private String sourceDirectory;
@@ -6,7 +9,7 @@ public class CustomBuild extends CustomBuildBase{
     private String testSourceDirectory;
     private String outputDirectory;
     private String testOutputDirectory;
-    private List<CustomExtension> extensions;
+    private List<CustomExtension> extensions = new LinkedList<>();
 
     public String getSourceDirectory() {
         return sourceDirectory;

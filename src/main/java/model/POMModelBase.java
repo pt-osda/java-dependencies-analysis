@@ -1,14 +1,14 @@
 package model;
 
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
 
 public class POMModelBase {
     private CustomDistributionManagement distributionManagement;
     private Properties properties;
-    private List<CustomDependency> dependencies;
+    private List<CustomDependency> dependencies = new LinkedList<>();
     private CustomReporting reporting;
-    //private String licenseFileName;
 
     public CustomDistributionManagement getDistributionManagement() {
         return distributionManagement;

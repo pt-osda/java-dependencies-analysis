@@ -1,6 +1,6 @@
 package model;
 
-import java.util.List;
+import java.util.*;
 
 public class POMModel extends POMModelBase{
     private String schemaLocation;  // não está presente no model de maven
@@ -15,16 +15,16 @@ public class POMModel extends POMModelBase{
     private String url;
     private String inceptionYear;
     private CustomOrganization organization;
-    private List<CustomLicense> licenses;
-    private List<CustomDeveloper> developers;
-    private List<CustomContributor> contributors;
-    private List<CustomMailingList> mailingLists;
+    private List<CustomLicense> licenses = new LinkedList<>();
+    private List<CustomDeveloper> developers = new LinkedList<>();
+    private List<CustomContributor> contributors = new LinkedList<>();
+    private List<CustomMailingList> mailingLists = new LinkedList<>();
     private CustomPrerequisites prerequisites;
     private CustomScm scm;
     private CustomIssueManagement issueManagement;
     private CustomCiManagement ciManagement;
     private CustomBuild build;
-    private List<CustomProfile> profiles;
+    private List<CustomProfile> profiles = new LinkedList<>();
     private String modelEncoding;
 
     public String getSchemaLocation() {

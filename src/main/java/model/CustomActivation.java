@@ -1,4 +1,6 @@
-package model;public class CustomActivation {
+package model;
+
+public class CustomActivation {
     private boolean activeByDefault = false;
     private String jdk;
     private CustomActivationOS os;

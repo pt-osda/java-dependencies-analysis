@@ -1,4 +1,6 @@
-package model;public class CustomExclusion {
+package model;
+
+public class CustomExclusion {
     private String artifactId;
     private String groupId;
 

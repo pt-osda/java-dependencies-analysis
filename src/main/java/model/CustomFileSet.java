@@ -1,4 +1,6 @@
-package model;public class CustomFileSet extends CustomPatternSet {
+package model;
+
+public class CustomFileSet extends CustomPatternSet {
     private String directory;
 
     public String getDirectory() {

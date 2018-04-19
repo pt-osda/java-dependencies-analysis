@@ -1,4 +1,6 @@
-package model;public class CustomExtension {
+package model;
+
+public class CustomExtension {
     private String groupId;
     private String artifactId;
     private String version;

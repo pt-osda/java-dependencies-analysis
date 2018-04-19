@@ -77,6 +77,16 @@ public class MyTask extends AbstractTask {
                 XmlMapper xmlMapper = new XmlMapper();
                 POMModel pomModel = xmlMapper.readValue(reader, POMModel.class);
 
+                int amount = pomModel.getDevelopers().size();
+                int dependencies = pomModel.getDependencies().size();
+
+                logger.info("The dependency was developed by {} people, and contains {} dependencies.", amount, dependencies);
+                int containsLicense = pomModel.getLicenses().size();//.isEmpty();
+                if (containsLicense != 0) {
+                    logger.info("This dependency contains a license. It is {}.");//, pomModel.getLicenses().get(0).getName());
+                } else {
+                    logger.info("This dependency does not contain a license.");
+                }
                 logger.info("Group id {}, artifact id {}, version {}", pomModel.getParent().getGroupId(), pomModel.getParent().getArtifactId(), pomModel.getParent().getVersion());
                 return pomModel;
             }

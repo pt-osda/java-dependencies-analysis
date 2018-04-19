@@ -1,4 +1,7 @@
-package model;import java.util.List;
+package model;
+
+import java.util.LinkedList;
+import java.util.List;
 
 public class CustomDependency {
     private String groupId;
@@ -8,7 +11,7 @@ public class CustomDependency {
     private String classifier;
     private String scope;
     private String systemPath;
-    private List<CustomExclusion> exclusions;
+    private List<CustomExclusion> exclusions = new LinkedList<>();
     private String optional;
 
     public String getGroupId() {

@@ -1,4 +1,6 @@
-package model;public class CustomActivationOS {
+package model;
+
+public class CustomActivationOS {
     private String name;
     private String family;
     private String arch;

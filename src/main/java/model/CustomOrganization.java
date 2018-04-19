@@ -1,4 +1,6 @@
-package model;public class CustomOrganization {
+package model;
+
+public class CustomOrganization {
     private String name;
     private String url;
 

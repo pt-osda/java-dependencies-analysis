@@ -1,7 +1,10 @@
-package model;import java.util.List;
+package model;
+
+import java.util.LinkedList;
+import java.util.List;
 
 public class CustomPluginContainer {
-    private List<CustomPlugin> plugins;
+    private List<CustomPlugin> plugins = new LinkedList<>();
 
     public List<CustomPlugin> getPlugins() {
         return plugins;

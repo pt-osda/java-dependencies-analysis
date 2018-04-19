@@ -1,11 +1,12 @@
 package model;
 
+import java.util.LinkedList;
 import java.util.List;
 
 public class CustomReporting {
     private String excludeDefaults;
     private String outputDirectory;
-    private List<CustomReportPlugin> plugins;
+    private List<CustomReportPlugin> plugins = new LinkedList<>();
 
     public String getExcludeDefaults() {
         return excludeDefaults;

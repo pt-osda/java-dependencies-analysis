@@ -1,4 +1,6 @@
-package model;public class CustomPluginConfiguration extends CustomPluginContainer {
+package model;
+
+public class CustomPluginConfiguration extends CustomPluginContainer {
     private CustomPluginManagement pluginManagement;
 
     public CustomPluginManagement getPluginManagement() {

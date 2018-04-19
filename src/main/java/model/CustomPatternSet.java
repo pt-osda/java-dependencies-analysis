@@ -1,10 +1,11 @@
 package model;
 
+import java.util.LinkedList;
 import java.util.List;
 
 public class CustomPatternSet {
-    private List<String> includes;
-    private List<String> excludes;
+    private List<String> includes = new LinkedList<>();
+    private List<String> excludes = new LinkedList<>();
 
     public List<String> getIncludes() {
         return includes;

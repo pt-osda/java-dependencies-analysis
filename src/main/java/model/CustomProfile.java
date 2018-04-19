@@ -1,7 +1,7 @@
 package model;
 
 public class CustomProfile {
-    private String id = "default";
+    private String id;
     private CustomActivation activation;
     private CustomBuildBase build;
 

@@ -1,4 +1,6 @@
-package model;public class CustomActivationProperty {
+package model;
+
+public class CustomActivationProperty {
     private String name;
     private String value;
 

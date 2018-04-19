@@ -1,4 +1,6 @@
-package model;public class CustomPrerequisites {
+package model;
+
+public class CustomPrerequisites {
     private String maven;
 
     public String getMaven() {

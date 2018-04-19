@@ -1,5 +1,7 @@
 package model;
 
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -8,10 +10,10 @@ public class CustomPlugin extends CustomConfigurationContainer{
     private String artifactId;
     private String version;
     private String extensions;
-    private List<CustomPluginExecution> executions;
-    private List<CustomDependency> dependencies;
+    private List<CustomPluginExecution> executions = new LinkedList<>();
+    private List<CustomDependency> dependencies = new LinkedList<>();
     private Object goals;
-    private Map<String, CustomPluginExecution> executionMap;
+    private Map<String, CustomPluginExecution> executionMap = new HashMap<>();
     private String key;
 
     public String getGroupId() {

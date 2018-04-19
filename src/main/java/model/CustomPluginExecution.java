@@ -1,12 +1,13 @@
 package model;
 
+import java.util.LinkedList;
 import java.util.List;
 
 public class CustomPluginExecution extends CustomConfigurationContainer{
     private String id;
     private String phase;
     private int priority;
-    private List<String> goals;
+    private List<String> goals = new LinkedList<>();
 
     public String getId() {
         return id;

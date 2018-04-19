@@ -1,5 +1,6 @@
 package model;
 
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
 
@@ -9,7 +10,7 @@ public class CustomContributor {
     private String url;
     private String organization;
     private String organizationUrl;
-    private List<String> roles;
+    private List<String> roles = new LinkedList<>();
     private String timezone;
     private Properties properties;
 

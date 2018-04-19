@@ -1,4 +1,6 @@
-package model;public class CustomIssueManagement {
+package model;
+
+public class CustomIssueManagement {
     private String system;
     private String url;
 

@@ -1,4 +1,7 @@
-package model;import java.util.List;
+package model;
+
+import java.util.LinkedList;
+import java.util.List;
 
 public class CustomMailingList {
     private String name;
@@ -6,7 +9,7 @@ public class CustomMailingList {
     private String unsubscribe;
     private String post;
     private String archive;
-    private List<String> otherArchives;
+    private List<String> otherArchives = new LinkedList<>();
 
     public String getName() {
         return name;

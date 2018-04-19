@@ -1,4 +1,6 @@
-package model;public class CustomParent {
+package model;
+
+public class CustomParent {
     private String groupId;
     private String artifactId;
     private String version;

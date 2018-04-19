@@ -1,14 +1,15 @@
 package model;
 
+import java.util.LinkedList;
 import java.util.List;
 
 public class CustomBuildBase extends CustomPluginConfiguration{
     private String defaultGoal;
-    private List<CustomResource> resources;
-    private List<CustomResource> testResources;
+    private List<CustomResource> resources = new LinkedList<>();
+    private List<CustomResource> testResources = new LinkedList<>();
     private String directory;
     private String finalName;
-    private List<String> filters;
+    private List<String> filters = new LinkedList<>();
 
     public String getDefaultGoal() {
         return defaultGoal;

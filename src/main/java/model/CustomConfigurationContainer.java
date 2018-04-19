@@ -1,4 +1,6 @@
-package model;public class CustomConfigurationContainer {
+package model;
+
+public class CustomConfigurationContainer {
     private String inherited;
     private Object configuration;
 

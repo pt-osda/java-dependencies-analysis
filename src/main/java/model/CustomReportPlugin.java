@@ -1,12 +1,13 @@
 package model;
 
+import java.util.LinkedList;
 import java.util.List;
 
 public class CustomReportPlugin extends CustomConfigurationContainer{
     private String groupId;
     private String artifactId;
     private String version;
-    private List<CustomReportSet> reportSets;
+    private List<CustomReportSet> reportSets = new LinkedList<>();
 
     public String getGroupId() {
         return groupId;

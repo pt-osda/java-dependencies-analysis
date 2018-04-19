@@ -1,10 +1,11 @@
 package model;
 
+import java.util.LinkedList;
 import java.util.List;
 
 public class CustomReportSet extends CustomConfigurationContainer {
-    private String id = "default";
-    private List<String> reports;
+    private String id;
+    private List<String> reports = new LinkedList<>();
 
     public String getId() {
         return id;

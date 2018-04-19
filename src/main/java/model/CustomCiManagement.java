@@ -1,9 +1,12 @@
-package model;import java.util.List;
+package model;
+
+import java.util.LinkedList;
+import java.util.List;
 
 public class CustomCiManagement {
     private String system;
     private String url;
-    private List<CustomNotifier> notifiers;
+    private List<CustomNotifier> notifiers = new LinkedList<>();
 
     public String getSystem() {
         return system;

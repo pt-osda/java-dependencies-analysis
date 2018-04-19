@@ -1,4 +1,6 @@
-package model;public class CustomActivationFile {
+package model;
+
+public class CustomActivationFile {
     private String missing;
     private String exists;
 
