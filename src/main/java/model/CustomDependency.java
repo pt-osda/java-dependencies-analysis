@@ -1,9 +1,11 @@
 package model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.util.LinkedList;
 import java.util.List;
 
 public class CustomDependency {
+    //<editor-fold desc="Fields of xml representation">
     private String groupId;
     private String artifactId;
     private String version;
@@ -11,9 +13,13 @@ public class CustomDependency {
     private String classifier;
     private String scope;
     private String systemPath;
-    private List<CustomExclusion> exclusions = new LinkedList<>();
     private String optional;
 
+    @JsonIgnore
+    private List<Object> exclusions = new LinkedList<>();
+    //</editor-fold>
+
+    //<editor-fold desc="Getters and Setters">
     public String getGroupId() {
         return groupId;
     }
@@ -42,12 +48,12 @@ public class CustomDependency {
         return systemPath;
     }
 
-    public List<CustomExclusion> getExclusions() {
-        return exclusions;
-    }
-
     public String getOptional() {
         return optional;
+    }
+
+    public List<Object> getExclusions() {
+        return exclusions;
     }
 
     public void setGroupId(String groupId) {
@@ -78,11 +84,12 @@ public class CustomDependency {
         this.systemPath = systemPath;
     }
 
-    public void setExclusions(List<CustomExclusion> exclusions) {
-        this.exclusions = exclusions;
-    }
-
     public void setOptional(String optional) {
         this.optional = optional;
     }
+
+    public void setExclusions(List<Object> exclusions) {
+        this.exclusions = exclusions;
+    }
+    //</editor-fold>
 }

@@ -1,9 +1,12 @@
 package model;
 
 public class CustomOrganization {
+    //<editor-fold desc="Fields of xml representation">
     private String name;
     private String url;
+    //</editor-fold>
 
+    //<editor-fold desc="Getters and Setters">
     public String getName() {
         return name;
     }
@@ -19,4 +22,5 @@ public class CustomOrganization {
     public void setUrl(String url) {
         this.url = url;
     }
+    //</editor-fold>
 }

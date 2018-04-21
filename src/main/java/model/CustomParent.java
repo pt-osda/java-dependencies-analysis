@@ -1,11 +1,14 @@
 package model;
 
 public class CustomParent {
+    //<editor-fold desc="Fields of xml representation">
     private String groupId;
     private String artifactId;
     private String version;
     private String relativePath;
+    //</editor-fold>
 
+    //<editor-fold desc="Getters and Setters">
     public String getGroupId() {
         return groupId;
     }
@@ -37,4 +40,5 @@ public class CustomParent {
     public void setRelativePath(String relativePath) {
         this.relativePath = relativePath;
     }
+    //</editor-fold>
 }

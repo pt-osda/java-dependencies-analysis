@@ -1,11 +1,14 @@
 package model;
 
 public class CustomLicense {
+    //<editor-fold desc="Fields of xml representation">
     private String name;
     private String url;
     private String distribution;
     private String comments;
+    //</editor-fold>
 
+    //<editor-fold desc="Getters and Setters">
     public String getName() {
         return name;
     }
@@ -37,4 +40,5 @@ public class CustomLicense {
     public void setComments(String comments) {
         this.comments = comments;
     }
+    //</editor-fold>
 }

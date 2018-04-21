@@ -1,8 +1,10 @@
 package model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.util.*;
 
-public class POMModel extends POMModelBase{
+public class POMModel {
+    //<editor-fold desc="Fields of xml representation">
     private String schemaLocation;  // não está presente no model de maven
     private String modelVersion;
     private CustomParent parent;
@@ -16,17 +18,36 @@ public class POMModel extends POMModelBase{
     private String inceptionYear;
     private CustomOrganization organization;
     private List<CustomLicense> licenses = new LinkedList<>();
-    private List<CustomDeveloper> developers = new LinkedList<>();
-    private List<CustomContributor> contributors = new LinkedList<>();
-    private List<CustomMailingList> mailingLists = new LinkedList<>();
-    private CustomPrerequisites prerequisites;
+    private List<CustomDependency> dependencies = new LinkedList<>();
     private CustomScm scm;
     private CustomIssueManagement issueManagement;
-    private CustomCiManagement ciManagement;
-    private CustomBuild build;
-    private List<CustomProfile> profiles = new LinkedList<>();
-    private String modelEncoding;
 
+    @JsonIgnore
+    private List<Object> developers = new LinkedList<>();
+
+    @JsonIgnore
+    private List<Object> contributors = new LinkedList<>();
+
+    @JsonIgnore
+    private List<Object> mailingLists = new LinkedList<>();
+
+    @JsonIgnore
+    private Object prerequisites;
+
+    @JsonIgnore
+    private Object ciManagement;
+
+    @JsonIgnore
+    private Object build;
+
+    @JsonIgnore
+    private List<Object> profiles = new LinkedList<>();
+
+    @JsonIgnore
+    private String modelEncoding;
+    //</editor-fold>
+
+    //<editor-fold desc="Getters">
     public String getSchemaLocation() {
         return schemaLocation;
     }
@@ -79,20 +100,8 @@ public class POMModel extends POMModelBase{
         return licenses;
     }
 
-    public List<CustomDeveloper> getDevelopers() {
-        return developers;
-    }
-
-    public List<CustomContributor> getContributors() {
-        return contributors;
-    }
-
-    public List<CustomMailingList> getMailingLists() {
-        return mailingLists;
-    }
-
-    public CustomPrerequisites getPrerequisites() {
-        return prerequisites;
+    public List<CustomDependency> getDependencies() {
+        return dependencies;
     }
 
     public CustomScm getScm() {
@@ -103,22 +112,40 @@ public class POMModel extends POMModelBase{
         return issueManagement;
     }
 
-    public CustomCiManagement getCiManagement() {
+    public List<Object> getDevelopers() {
+        return developers;
+    }
+
+    public List<Object> getContributors() {
+        return contributors;
+    }
+
+    public List<Object> getMailingLists() {
+        return mailingLists;
+    }
+
+    public Object getPrerequisites() {
+        return prerequisites;
+    }
+
+    public Object getCiManagement() {
         return ciManagement;
     }
 
-    public CustomBuild getBuild() {
+    public Object getBuild() {
         return build;
     }
 
-    public List<CustomProfile> getProfiles() {
+    public List<Object> getProfiles() {
         return profiles;
     }
 
     public String getModelEncoding() {
         return modelEncoding;
     }
+    //</editor-fold>
 
+    //<editor-fold desc="Setters">
     public void setSchemaLocation(String schemaLocation) {
         this.schemaLocation = schemaLocation;
     }
@@ -171,20 +198,8 @@ public class POMModel extends POMModelBase{
         this.licenses = licenses;
     }
 
-    public void setDevelopers(List<CustomDeveloper> developers) {
-        this.developers = developers;
-    }
-
-    public void setContributors(List<CustomContributor> contributors) {
-        this.contributors = contributors;
-    }
-
-    public void setMailingLists(List<CustomMailingList> mailingLists) {
-        this.mailingLists = mailingLists;
-    }
-
-    public void setPrerequisites(CustomPrerequisites prerequisites) {
-        this.prerequisites = prerequisites;
+    public void setDependencies(List<CustomDependency> dependencies) {
+        this.dependencies = dependencies;
     }
 
     public void setScm(CustomScm scm) {
@@ -195,19 +210,36 @@ public class POMModel extends POMModelBase{
         this.issueManagement = issueManagement;
     }
 
-    public void setCiManagement(CustomCiManagement ciManagement) {
+    public void setDevelopers(List<Object> developers) {
+        this.developers = developers;
+    }
+
+    public void setContributors(List<Object> contributors) {
+        this.contributors = contributors;
+    }
+
+    public void setMailingLists(List<Object> mailingLists) {
+        this.mailingLists = mailingLists;
+    }
+
+    public void setPrerequisites(Object prerequisites) {
+        this.prerequisites = prerequisites;
+    }
+
+    public void setCiManagement(Object ciManagement) {
         this.ciManagement = ciManagement;
     }
 
-    public void setBuild(CustomBuild build) {
+    public void setBuild(Object build) {
         this.build = build;
     }
 
-    public void setProfiles(List<CustomProfile> profiles) {
+    public void setProfiles(List<Object> profiles) {
         this.profiles = profiles;
     }
 
     public void setModelEncoding(String modelEncoding) {
         this.modelEncoding = modelEncoding;
     }
+    //</editor-fold>
 }

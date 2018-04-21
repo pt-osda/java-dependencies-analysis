@@ -29,7 +29,6 @@ public class MyTask extends AbstractTask {
 
         ConfigurationContainer configurationContainer = project.getConfigurations();
 
-        logger.info("Test changes to plugin.");
         logger.info("There are {} configurations.", configurationContainer.size());
 
         for (Configuration configuration : configurationContainer){
@@ -81,9 +80,10 @@ public class MyTask extends AbstractTask {
                 int dependencies = pomModel.getDependencies().size();
 
                 logger.info("The dependency was developed by {} people, and contains {} dependencies.", amount, dependencies);
-                int containsLicense = pomModel.getLicenses().size();//.isEmpty();
-                if (containsLicense != 0) {
-                    logger.info("This dependency contains a license. It is {}.");//, pomModel.getLicenses().get(0).getName());
+                boolean containsLicense = pomModel.getLicenses().isEmpty();
+                logger.info("The dependency does not contains license {}", containsLicense);
+                if (!containsLicense) {
+                    logger.info("This dependency contains a license. It is {}.", pomModel.getLicenses().get(0).getName());
                 } else {
                     logger.info("This dependency does not contain a license.");
                 }

@@ -1,11 +1,14 @@
 package model;
 
 public class CustomScm {
+    //<editor-fold desc="Fields of xml representation">
     private String connection;
     private String developerConnection;
     private String tag;
     private String url;
+    //</editor-fold>
 
+    //<editor-fold desc="Getters and Setters">
     public String getConnection() {
         return connection;
     }
@@ -37,4 +40,5 @@ public class CustomScm {
     public void setUrl(String url) {
         this.url = url;
     }
+    //</editor-fold>
 }
