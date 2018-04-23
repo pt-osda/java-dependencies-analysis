@@ -45,6 +45,15 @@ public class POMModel {
 
     @JsonIgnore
     private String modelEncoding;
+
+    @JsonIgnore
+    private Object distributionManagement;
+
+    @JsonIgnore
+    private Object properties;
+
+    @JsonIgnore
+    private Object reporting;
     //</editor-fold>
 
     //<editor-fold desc="Getters">
@@ -143,6 +152,18 @@ public class POMModel {
     public String getModelEncoding() {
         return modelEncoding;
     }
+
+    public Object getDistributionManagement() {
+        return distributionManagement;
+    }
+
+    public Object getProperties() {
+        return properties;
+    }
+
+    public Object getReporting() {
+        return reporting;
+    }
     //</editor-fold>
 
     //<editor-fold desc="Setters">
@@ -240,6 +261,18 @@ public class POMModel {
 
     public void setModelEncoding(String modelEncoding) {
         this.modelEncoding = modelEncoding;
+    }
+
+    public void setDistributionManagement(Object distributionManagement) {
+        this.distributionManagement = distributionManagement;
+    }
+
+    public void setProperties(Object properties) {
+        this.properties = properties;
+    }
+
+    public void setReporting(Object reporting) {
+        this.reporting = reporting;
     }
     //</editor-fold>
 }
