@@ -5,7 +5,7 @@ import org.gradle.api.Task;
 public class JavaDependenciesAnalysis implements Plugin<Project> {
     @Override
     public void apply(Project project) {
-        Task myTask = project.getTasks().create("myTask", MyTask.class);
+        Task myTask = project.getTasks().create("validateDependencies", MyTask.class);
         System.out.println(String.format("Is task enabled %s", myTask.getEnabled()));
-        }
+    }
 }

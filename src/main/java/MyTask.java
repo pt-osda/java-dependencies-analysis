@@ -7,31 +7,26 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.internal.AbstractTask;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.tasks.TaskAction;
-
 import java.io.*;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.Set;
+import java.util.*;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.zip.ZipEntry;
 
 public class MyTask extends AbstractTask {
     private Logger logger;
-    private final String[] VALID_LICENSE = {"Apache Version 2.0"};
+    private final List<String> VALID_LICENSE_LIST = new LinkedList<>();
     private String pomFile;
     private String licenseFile;
     private final HashMap<String, String> KNOWN_LICENSE = new HashMap<>();
     private boolean invalidLicense = false;
 
     @TaskAction
-    public void pluginAction(){
-        fillLicenses();
+    public void validateDependencies(){
+        fillLicenses(); // cria o map com as licenças conhecidas.
 
         Project project = getProject();
-
         logger = getLogger();
-        logger.info("Hello World my getName is {}\n\n\n", getName());
 
         ConfigurationContainer configurationContainer = project.getConfigurations();
 
@@ -51,31 +46,13 @@ public class MyTask extends AbstractTask {
                 try {
                     logger.info("Reading jar file");
                     JarFile jarFile = new JarFile(absoluteFilePath);
+
                     logger.info("JarFile name {}", jarFile.getName());
 
                     findRequiredFiles(jarFile);
 
-                    boolean foundLicense = false;
+                    getLicenseTechniques(jarFile);
 
-                    if (pomFile != null){
-
-                        logger.info("Going to validate pom file.");
-                        foundLicense = validatePomFile(jarFile);
-                        /*POMModel pomModel = getPOM(jarFile);
-
-                        //logger.info("Dependency[{}] : {}, {}, {}.", idx, dependencies[idx].getName(), dependencies[idx].getVersion(), dependencies[idx].getGroup());
-                        if (pomModel != null){
-                            logger.info("POM file found. DependencySet contains element {}", dependencySet.contains(pomModel));
-                        }*/
-                        logger.info("Validation of pom file produced. foundLicense: {}, licenseFile: {}, invalidLicense: {}", foundLicense, licenseFile, invalidLicense);
-                    }
-                    if (foundLicense)
-                        logger.info("Found license as part of pom.xml file");
-                    if (licenseFile != null && !foundLicense && !invalidLicense){
-                        logger.info("Going to validate license from pom file commentary.");
-                        if (validateLicenseInPomFile(jarFile))
-                            logger.info("License found as commentary in pom.xml file");
-                    }
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -90,6 +67,7 @@ public class MyTask extends AbstractTask {
         KNOWN_LICENSE.put("Apache License, Version 2.0", "Apache Version 2.0");
         KNOWN_LICENSE.put("http://www.apache.org/licenses/LICENSE-2.0", "Apache Version 2.0");
         KNOWN_LICENSE.put("BSD License", "BSD 3-Clause License");  // hamcrest-core1.3 from consul-api
+        VALID_LICENSE_LIST.add("Apache Version 2.0");
     }
 
     private void findRequiredFiles(JarFile jar){
@@ -110,23 +88,45 @@ public class MyTask extends AbstractTask {
             }
         }
     }
-/*
-    private POMModel getPOM(JarFile jar) throws Exception {
-        ZipEntry entryPomFile = jar.getEntry(pomFile);
 
-        BufferedReader reader = new BufferedReader(new InputStreamReader(jar.getInputStream(entryPomFile)));
-        XmlMapper xmlMapper = new XmlMapper();
-        return xmlMapper.readValue(reader, POMModel.class);
-    }*/
+    private void getLicenseTechniques(JarFile jarFile) throws IOException {
+        if (pomFile != null){
+            logger.info("Going to validate pom file.");
+            if(validatePomFile(jarFile)) {
+                logger.info("Found license as part of pom.xml file");
+                return; // TODO write in file
+            } else if(invalidLicense){
+                logger.info("License found in pom.xml model is invalid.");
+                return;
+            }
+
+            if (validateLicenseFromFile(jarFile, pomFile)){
+                logger.info("License found as commentary in pom.xml file is valid.");
+                return;
+            } else if (invalidLicense){
+                logger.info("License found as commentary in pom.xml is invalid.");
+                return;
+            }
+        }
+
+        if (licenseFile != null && !invalidLicense){
+            logger.info("Going to validate license from pom file commentary.");
+            if (validateLicenseFromFile(jarFile, licenseFile)) {
+                logger.info("License found in LICENSE file is valid");
+            } else if (invalidLicense){
+                logger.info("License found in LICENSE file is invalid");
+            }
+        }
+    }
 
     private boolean validatePomFile(JarFile jar) throws IOException {
         ZipEntry entryPomFile = jar.getEntry(pomFile);
-
         BufferedReader reader = new BufferedReader(new InputStreamReader(jar.getInputStream(entryPomFile)));
         XmlMapper xmlMapper = new XmlMapper();
         POMModel pomModel = xmlMapper.readValue(reader, POMModel.class);
 
         logger.info("Pom Model licenses: {}", pomModel.getLicenses());
+
         if (!pomModel.getLicenses().isEmpty()){
             for (CustomLicense license : pomModel.getLicenses()) {
                 String licenseFound = "";
@@ -137,10 +137,8 @@ public class MyTask extends AbstractTask {
                     licenseFound = KNOWN_LICENSE.get(license.getUrl());
 
                 if (!licenseFound.equals("")){
-                    for (String validLicense : VALID_LICENSE) {
-                        if (licenseFound.equals(validLicense))
-                            return true;
-                    }
+                    if (VALID_LICENSE_LIST.contains(licenseFound))
+                        return true;
                 }
             }
             invalidLicense = true;
@@ -148,23 +146,23 @@ public class MyTask extends AbstractTask {
         return false;
     }
 
-    private boolean validateLicenseInPomFile(JarFile jarFile) throws IOException {
-        ZipEntry entryPomFile = jarFile.getEntry(licenseFile);
+    private boolean validateLicenseFromFile(JarFile jarFile, String fileName) throws IOException {
+        ZipEntry entryPomFile = jarFile.getEntry(fileName);
 
         BufferedReader reader = new BufferedReader(new InputStreamReader(jarFile.getInputStream(entryPomFile)));
 
-        logger.info("Pom File lines.\n\n\n\n\n");
         String line;
         while ((line = reader.readLine()) != null){
-            logger.info(line);
             for (String keysLicense : KNOWN_LICENSE.keySet()) {
                 if (line.contains(keysLicense)){
                     logger.info("Line contains key: {}", keysLicense);
                     String license = KNOWN_LICENSE.get(keysLicense);
-                    for (String validLicense : VALID_LICENSE) {
-                        if (license.equals(validLicense))
-                            return true;
-                    }
+
+                    if (VALID_LICENSE_LIST.contains(license))
+                        return true;
+
+                    invalidLicense = true;
+                    return false;
                 }
             }
         }
