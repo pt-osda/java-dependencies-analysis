@@ -47,3 +47,9 @@ To use with [Ivy](http://ant.apache.org/ivy/) use this snippet:
   <artifact name='java-dependencies-analysis' ext='pom' ></artifact>
 </dependency>
 ```
+
+# How it Works
+This plugin will install in the project a task, which will be responsible for the validation of the dependencies of the project. And as such every time that it is needed to validate the dependencies of the project all that is required is to run the following command in the project directory:
+```
+./gradlew validateDependencies
+```

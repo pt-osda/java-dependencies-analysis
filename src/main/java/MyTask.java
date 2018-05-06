@@ -1,9 +1,16 @@
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import model.CustomLicense;
 import model.POMModel;
+import net.ossindex.common.IPackageRequest;
+import net.ossindex.common.OssIndexApi;
+import net.ossindex.common.PackageDescriptor;
+import net.ossindex.common.VulnerabilityDescriptor;
+import net.ossindex.common.request.PackageRequest;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.ResolvedDependency;
 import org.gradle.api.internal.AbstractTask;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.tasks.TaskAction;
@@ -11,6 +18,8 @@ import java.io.*;
 import java.util.*;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 
 public class MyTask extends AbstractTask {
@@ -20,10 +29,12 @@ public class MyTask extends AbstractTask {
     private String licenseFile;
     private final HashMap<String, String> KNOWN_LICENSE = new HashMap<>();
     private boolean invalidLicense = false;
+    private final HashMap<PackageDescriptor, PackageDescriptor> dependenciesPackages = new HashMap<>();
+    private IPackageRequest request;
 
     @TaskAction
     public void validateDependencies(){
-        fillLicenses(); // cria o map com as licenças conhecidas.
+        fillLicenses(); // Creates the Map with the known licenses.
 
         Project project = getProject();
         logger = getLogger();
@@ -32,6 +43,7 @@ public class MyTask extends AbstractTask {
 
         logger.info("There are {} configurations.", configurationContainer.size());
 
+        getVulnerabilities(configurationContainer);
         for (Configuration configuration : configurationContainer){
             logger.info("Running for configuration {}.", configuration.getName());
             if (!configuration.getName().equals("compile")) continue;   // TODO remove from final form
@@ -39,6 +51,9 @@ public class MyTask extends AbstractTask {
 
             logger.info("Beginning to get all configuration files");
 
+            Set<ResolvedDependency> resolvedDependencies = configuration.getResolvedConfiguration().getFirstLevelModuleDependencies();
+
+            //teste(resolvedDependencies);
             for (File currentFile : files) {
                 String absoluteFilePath = currentFile.getAbsolutePath();
                 logger.info("The current file is {}", absoluteFilePath);
@@ -62,11 +77,79 @@ public class MyTask extends AbstractTask {
         }
     }
 
+    private void getVulnerabilities(ConfigurationContainer configurationContainer) {
+        /*Set<GradleArtifact> gradleArtifacts = new HashSet<>();
+        for (Configuration configuration : configurationContainer){
+            Set<ResolvedDependency> resolvedDependencies = configuration.getResolvedConfiguration().getFirstLevelModuleDependencies();
+            for (ResolvedDependency resolvedDependency : resolvedDependencies) {
+                gradleArtifacts.add(new GradleArtifact(null, resolvedDependency));
+            }
+        }
+*/
+        Set<GradleArtifact> gradleArtifacts = configurationContainer
+                .stream()
+                .filter(configuration -> configuration.getName().equals("compile"))
+                .flatMap(configuration -> configuration.getResolvedConfiguration().getFirstLevelModuleDependencies().stream())
+                .distinct()
+                .map(resolvedDependency -> new GradleArtifact(null, resolvedDependency))
+                .collect(Collectors.toSet());
+
+        request = OssIndexApi.createPackageRequest();
+
+        requestChild(null, gradleArtifacts);
+
+        try {
+            Collection<PackageDescriptor> packageRequests = request.run();
+            logger.info("Obtained {} packageDescriptor", packageRequests.size());
+
+            for (PackageDescriptor packageDescriptor : packageRequests) {
+                logger.info("Package {} has {} vulnerabilities.", packageDescriptor.getName(), packageDescriptor.getVulnerabilityTotal());
+                List<VulnerabilityDescriptor> vulnerabilityDescriptors = packageDescriptor.getVulnerabilities();
+
+                if (packageDescriptor.getVulnerabilityMatches() > 0)
+                    for (VulnerabilityDescriptor vulnerabilityDescriptor : vulnerabilityDescriptors) {
+                        logger.info("Vulnerability id {}, description {}, uriString {}",
+                                vulnerabilityDescriptor.getId(),
+                                vulnerabilityDescriptor.getDescription(),
+                                vulnerabilityDescriptor.getUriString());
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void requestChild(PackageDescriptor packageDescriptor, Set<GradleArtifact> children) {
+        children.forEach(gradleArtifact -> {
+             PackageDescriptor descriptor = new PackageDescriptor("maven", gradleArtifact.getGroup(), gradleArtifact.getName(), gradleArtifact.getVersion());
+            if (!dependenciesPackages.containsKey(descriptor)){
+                logger.info("Gradle Artifact Child group {}, name {}, version {}", gradleArtifact.getGroup(), gradleArtifact.getName(), gradleArtifact.getVersion());
+                descriptor = request.add("maven", gradleArtifact.getGroup(), gradleArtifact.getName(), gradleArtifact.getVersion());
+                dependenciesPackages.put(descriptor, packageDescriptor);
+                requestChild(descriptor, gradleArtifact.getChildren());
+            }
+        });
+    }
+
+    /*
+        private void teste(Set<ResolvedDependency> resolvedDependencies) {
+            for (ResolvedDependency resolvedDependency : resolvedDependencies) {
+                logger.info("Resolved Dependency name:{}, module version:{}, module group:{}, module name:{}", resolvedDependency.getName(),
+                        resolvedDependency.getModuleVersion(), resolvedDependency.getModuleGroup(), resolvedDependency.getModuleName());
+
+                logger.info("=====================================================================================================================");
+                logger.info("Resolved Dependency moduleId name:{}, moduleId group:{}, moduleId version:{}", resolvedDependency.getModule().getId().getName(),
+                        resolvedDependency.getModule().getId().getGroup(), resolvedDependency.getModule().getId().getVersion());
+                teste(resolvedDependency.getChildren());
+            }
+        }
+    */
     private void fillLicenses() {
         KNOWN_LICENSE.put("Apache Software License, Version 1.1", "Apache Version 1.1");
         KNOWN_LICENSE.put("Apache License, Version 2.0", "Apache Version 2.0");
         KNOWN_LICENSE.put("http://www.apache.org/licenses/LICENSE-2.0", "Apache Version 2.0");
         KNOWN_LICENSE.put("BSD License", "BSD 3-Clause License");  // hamcrest-core1.3 from consul-api
+        KNOWN_LICENSE.put("BSD 3-clause license", "BSD 3-Clause License");  // antlr4-runtime from kafka-connect-query-language
         VALID_LICENSE_LIST.add("Apache Version 2.0");
     }
 
