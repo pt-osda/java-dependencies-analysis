@@ -9,6 +9,7 @@ public class ReportModel implements Serializable {
     private String name;
     private String description;
     private List<ReportDependencies> dependencies;
+    private String timestamp;
 
     public String getId() {
         return id;
@@ -30,6 +31,10 @@ public class ReportModel implements Serializable {
         return dependencies;
     }
 
+    public String getTimestamp() {
+        return timestamp;
+    }
+
     public void setId(String id) {
         this.id = id;
     }
@@ -48,6 +53,10 @@ public class ReportModel implements Serializable {
 
     public void setDependencies(List<ReportDependencies> dependencies) {
         this.dependencies = dependencies;
+    }
+
+    public void setTimestamp(String timestamp) {
+        this.timestamp = timestamp;
     }
 
     public ReportModel(String projectName){

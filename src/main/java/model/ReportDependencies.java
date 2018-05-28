@@ -17,18 +17,21 @@ public class ReportDependencies implements Serializable {
     /**
      * Indicates the license of the dependency if one was found.
      */
-    private ReportLicense[] license;
+    private ReportLicense[] licenses;
 
     /**
      * Indicates the hierarchy of the dependency. Showing if the dependency is used directly by the project or if it's a
      * dependency of a dependency and if so shows how "far" it is from the direct dependency
      */
-    private ReportHierarchy[] hierarchy;  // TODO find the information needed for this field.
+    //private ReportHierarchy[] parents;  // TODO find the information needed for this field.
+    private String[] parents;
 
     /**
      * Indicates all the vulnerabilities found in this dependency.
      */
     private ReportVulnerabilities[] vulnerabilities;
+
+    private int vulnerabilities_count;
 
     public String getTitle() {
         return title;
@@ -38,16 +41,24 @@ public class ReportDependencies implements Serializable {
         return main_version;
     }
 
-    public ReportLicense[] getLicense() {
-        return license;
+    public ReportLicense[] getLicenses() {
+        return licenses;
     }
 
-    public ReportHierarchy[] getHierarchy() {
-        return hierarchy;
+    /*public ReportHierarchy[] getParents() {
+        return parents;
+    }*/
+
+    public String[] getParents() {
+        return parents;
     }
 
     public ReportVulnerabilities[] getVulnerabilities() {
         return vulnerabilities;
+    }
+
+    public int getVulnerabilities_count() {
+        return vulnerabilities_count;
     }
 
     public void setTitle(String title) {
@@ -58,21 +69,33 @@ public class ReportDependencies implements Serializable {
         this.main_version = main_version;
     }
 
-    public void setLicense(ReportLicense[] license) {
-        this.license = license;
+    public void setLicenses(ReportLicense[] licenses) {
+        this.licenses = licenses;
     }
 
-    public void setHierarchy(ReportHierarchy[] hierarchy) {
-        this.hierarchy = hierarchy;
+    /*public void setParents(ReportHierarchy[] parents) {
+        this.parents = parents;
+    }*/
+
+    public void setParents(String[] parents) {
+        this.parents = parents;
     }
 
     public void setVulnerabilities(ReportVulnerabilities[] vulnerabilities) {
         this.vulnerabilities = vulnerabilities;
     }
 
+    public void setVulnerabilities_count(int vulnerabilities_count) {
+        this.vulnerabilities_count = vulnerabilities_count;
+    }
+
     public ReportDependencies(String title, String main_version) {
         this.title = title;
         this.main_version = main_version;
+        this.licenses = new ReportLicense[0];
+        //this.parents = new ReportHierarchy[0];
+        this.parents = new String[0];
+        this.vulnerabilities = new ReportVulnerabilities[0];
     }
 
     @Override
@@ -80,8 +103,8 @@ public class ReportDependencies implements Serializable {
         return String.format("Title: %s, main version: %s, license: %s, hierarchy: %s, vulnerabilities: %s",
                 this.title,
                 this.main_version,
-                Arrays.toString(this.license),
-                Arrays.toString(this.hierarchy),
+                Arrays.toString(this.licenses),
+                Arrays.toString(this.parents),
                 Arrays.toString(this.vulnerabilities));
     }
 

@@ -1,6 +1,10 @@
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import model.*;
+import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
@@ -13,6 +17,7 @@ import org.gradle.api.internal.AbstractTask;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.tasks.TaskAction;
 import java.io.*;
+import java.sql.Timestamp;
 import java.util.*;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
@@ -27,6 +32,7 @@ public class ValidateDependenciesTask extends AbstractTask {
     private final List<Artifacts> REQUEST_BODY = new LinkedList<>();
     private final List<ReportDependencies> REPORT_DEPENDENCIES = new ArrayList<>();
     private final String API_URL = "http://localhost:8080/gradle/dependency/vulnerabilities";
+    private final String API_REPORT_URL = "http://localhost:8080/report";
     private Logger logger;
     private String pomFile;
     private String licenseFile;
@@ -86,6 +92,39 @@ public class ValidateDependenciesTask extends AbstractTask {
                 e.printStackTrace();
             }*/
 
+            reportModel.setTimestamp(new Timestamp(System.currentTimeMillis()).toString());
+            CloseableHttpResponse response = null;
+            try {
+                ObjectMapper mapper = new ObjectMapper();
+                String report = mapper.writeValueAsString(reportModel);
+
+                HttpPost httpPost = new HttpPost(API_REPORT_URL);
+                httpPost.setEntity(new StringEntity(report));
+                httpPost.addHeader("Content-Type", "application/json");
+
+                logger.info("Object to write {}", report);
+
+                response = httpClient.execute(httpPost);
+
+                logger.info("Response Status {}", response.getStatusLine().getStatusCode());
+
+                logger.info("Response {}", response.getStatusLine());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }finally {
+                if (response != null) {
+                    try {
+                        response.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+                try {
+                    httpClient.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
         }
     }
 
@@ -156,6 +195,14 @@ public class ValidateDependenciesTask extends AbstractTask {
 
             for (VulnerabilitiesResult vulnerability : vulnerabilities) {
                 logger.info("Entity {}", vulnerability);
+                ReportDependencies dependencies = new ReportDependencies(vulnerability.getTitle(), vulnerability.getMainVersion());
+
+                List<ReportDependencies> reportDependencies = reportModel.getDependencies().stream().filter(dependency -> dependency.equals(dependencies)).collect(Collectors.toList());
+
+                if (!reportDependencies.isEmpty()){
+                    reportDependencies.get(0).setVulnerabilities(vulnerability.getVulnerabilities().toArray(new ReportVulnerabilities[0]));
+                    reportDependencies.get(0).setVulnerabilities_count(vulnerability.getTotalVulnerabilities());
+                }
             }
 
         } catch (IOException e) {
@@ -272,10 +319,10 @@ public class ValidateDependenciesTask extends AbstractTask {
                     logger.info("Report Dependency found {}", reportDependency.size());
 
                     ReportLicense reportLicense = new ReportLicense();
-                    reportLicense.setName(licenseFound);
-                    reportLicense.setOrigins("Tag License from pom file.");
+                    reportLicense.setSpdx_id(licenseFound);
+                    reportLicense.setSource("Tag License from pom file.");
 
-                    reportDependency.get(0).setLicense(new ReportLicense[]{reportLicense});
+                    reportDependency.get(0).setLicenses(new ReportLicense[]{reportLicense});
 
                     if (VALID_LICENSE_LIST.contains(licenseFound))
                         return true;
@@ -321,13 +368,13 @@ public class ValidateDependenciesTask extends AbstractTask {
                     logger.info("File {}", fileName);
 
                     ReportLicense reportLicense = new ReportLicense();
-                    reportLicense.setName(license);
-                    reportLicense.setOrigins(String.format("Commentary from %s file", fileName));
+                    reportLicense.setSpdx_id(license);
+                    reportLicense.setSource(String.format("Commentary from %s file", fileName));
 
                     logger.info("Produced report license");
 
                     logger.info("Writing license to {}", reportDependency.getTitle());
-                    reportDependency.setLicense(new ReportLicense[]{reportLicense});
+                    reportDependency.setLicenses(new ReportLicense[]{reportLicense});
 
                     if (VALID_LICENSE_LIST.contains(license))
                         return true;
