@@ -1,36 +1,38 @@
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import model.*;
-import net.ossindex.common.IPackageRequest;
-import net.ossindex.common.OssIndexApi;
-import net.ossindex.common.PackageDescriptor;
-import net.ossindex.common.VulnerabilityDescriptor;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.internal.AbstractTask;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.tasks.TaskAction;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.util.*;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 
+// TODO no model para o ficheiro incluir o groupId e o artifactId e depois nas vulnerabilidades ir buscar informação a esse model
 public class ValidateDependenciesTask extends AbstractTask {
     private final HashMap<String, String> KNOWN_LICENSE = new HashMap<>();
     private final List<String> VALID_LICENSE_LIST = new LinkedList<>();
-    private final HashMap<PackageDescriptor, PackageDescriptor> dependenciesPackages = new HashMap<>();
+    private final HashMap<Artifacts, Artifacts> dependenciesPackages = new HashMap<>();
+    private final List<Artifacts> REQUEST_BODY = new LinkedList<>();
+    private final List<ReportDependencies> REPORT_DEPENDENCIES = new ArrayList<>();
+    private final String API_URL = "http://localhost:8080/gradle/dependency/vulnerabilities";
     private Logger logger;
     private String pomFile;
     private String licenseFile;
     private boolean invalidLicense = false;
-    private IPackageRequest request;
     private ReportModel reportModel;
+    private CloseableHttpClient httpClient;
 
     @TaskAction
     public void validateDependencies(){
@@ -76,111 +78,116 @@ public class ValidateDependenciesTask extends AbstractTask {
 
             logger.info("All configuration files were shown");
 
-            try {
+            /*try {
                 ObjectMapper mapper = new ObjectMapper();
                 mapper.writeValue(new File("Report.json"), reportModel);
             } catch (IOException e) {
                 logger.info( "An exception occurred. {}", e.getMessage());
                 e.printStackTrace();
-            }
+            }*/
+
         }
     }
 
     /**
-     * Creates all in the report object all the dependencies in the project.
+     * Creates in the report object all the dependencies in the project.
      * @param configurationContainer
      */
     private void getAllDependencies(ConfigurationContainer configurationContainer) {
         List<ReportDependencies> foundDependencies = new LinkedList<>();
 
-        configurationContainer.forEach(configuration -> {
-            logger.info("Configuration {}", configuration.getName());
-            configuration.getDependencies().forEach(dependency -> {
-                List<ReportDependencies> repeatedDependencies = foundDependencies
-                        .stream()
-                        .filter(reportDependencies -> reportDependencies.getTitle().equals(dependency.getName()))
-                        .distinct()
-                        .collect(Collectors.toList());
+        configurationContainer
+                //.stream()
+                //.filter(configuration -> configuration.getName().equals("compile"))
+                .forEach(configuration -> {
+                    logger.info("Configuration {}", configuration.getName());
+                    configuration.getDependencies().forEach(dependency -> {
+                        List<ReportDependencies> repeatedDependencies = foundDependencies
+                                .stream()
+                                .filter(reportDependencies -> reportDependencies.getTitle().equals(dependency.getName()))
+                                .distinct()
+                                .collect(Collectors.toList());
 
-                logger.info("ReportDependency found {}", repeatedDependencies.size());
+                        logger.info("ReportDependency found {}", repeatedDependencies.size());
 
-                if (repeatedDependencies.isEmpty()) {
-                    ReportDependencies newDependency = new ReportDependencies();
-                    newDependency.setTitle(dependency.getName());
-                    newDependency.setMain_version(dependency.getVersion());
-                    foundDependencies.add(newDependency);
-                    logger.info("Added dependency {}", newDependency.getTitle());
-                }
-            });
-        });
-        reportModel.setDependencies(foundDependencies.toArray(new ReportDependencies[0]));
+                        if (repeatedDependencies.isEmpty()) {
+
+                            ReportDependencies newDependency = new ReportDependencies(dependency.getGroup() + ":" + dependency.getName(), dependency.getVersion());
+                            foundDependencies.add(newDependency);
+                            logger.info("Added dependency {}", newDependency);
+                        }
+                    });
+                });
+        //reportModel.setDependencies(foundDependencies.toArray(new ReportDependencies[0]));
+        reportModel.setDependencies(foundDependencies);
     }
 
     private void getVulnerabilities(ConfigurationContainer configurationContainer) {
         Set<GradleArtifact> gradleArtifacts = configurationContainer
                 .stream()
-                .filter(configuration -> configuration.getName().equals("compile"))
+                .filter(configuration -> configuration.getName().equals("compile")) // TODO remove from final form
                 .flatMap(configuration -> configuration.getResolvedConfiguration().getFirstLevelModuleDependencies().stream())
                 .distinct()
                 .map(resolvedDependency -> new GradleArtifact(null, resolvedDependency))
                 .collect(Collectors.toSet());
 
-        request = OssIndexApi.createPackageRequest();
-
         requestChild(null, gradleArtifacts);
 
+        CloseableHttpResponse response = null;
         try {
-            Collection<PackageDescriptor> packageRequests = request.run();
-            logger.info("Obtained {} packageDescriptor", packageRequests.size());
+            logger.info("Request body {}", REQUEST_BODY.toString());
 
-            ReportDependencies[] reportDependencies = new ReportDependencies[packageRequests.size()];
+            ObjectMapper mapper = new ObjectMapper();
+            String obj = mapper.writeValueAsString(REQUEST_BODY);
+            httpClient = HttpClients.createDefault();
+            HttpPost httpPost = new HttpPost(API_URL);
+            httpPost.setEntity(new StringEntity(obj));
+            httpPost.addHeader("Content-Type", "application/json");
 
-            int dependenciesIdx = 0;
-            for (PackageDescriptor packageDescriptor : packageRequests) {
-                logger.info("Package {} has {} vulnerabilities.", packageDescriptor.getName(), packageDescriptor.getVulnerabilityMatches());
-                List<VulnerabilityDescriptor> vulnerabilityDescriptors = packageDescriptor.getVulnerabilities();
+            logger.info("Object to write {}", obj);
 
-                ReportDependencies reportDependency = new ReportDependencies();
-                reportDependency.setTitle(packageDescriptor.getName());
-                reportDependency.setMain_version(packageDescriptor.getVersion());
+            response = httpClient.execute(httpPost);
 
-                ReportVulnerabilities[] reportVulnerabilities = new ReportVulnerabilities[packageDescriptor.getVulnerabilityMatches()];
+            logger.info("Response Status {}", response.getStatusLine().getStatusCode());
 
-                if (packageDescriptor.getVulnerabilityMatches() > 0) {
-                    int idx = 0;
-                    for (VulnerabilityDescriptor vulnerabilityDescriptor : vulnerabilityDescriptors) {
-                        logger.info("Vulnerability id {}, description {}, uriString {}",
-                                vulnerabilityDescriptor.getId(),
-                                vulnerabilityDescriptor.getDescription(),
-                                vulnerabilityDescriptor.getUriString());
+            logger.info("Response {}", response.getStatusLine());
 
-                        ReportVulnerabilities reportVulnerability = new ReportVulnerabilities(vulnerabilityDescriptor.getTitle(),
-                                vulnerabilityDescriptor.getDescription(),
-                                vulnerabilityDescriptor.getReferences().toArray(new String[0]),
-                                vulnerabilityDescriptor.getVersions().toArray(new String[0]));
+            VulnerabilitiesResult[] vulnerabilities = mapper.readValue(response.getEntity().getContent(), VulnerabilitiesResult[].class);
 
-                        reportVulnerabilities[idx++] = reportVulnerability;
-                    }
-                }
-                reportDependency.setVulnerabilities(reportVulnerabilities);
-                reportDependencies[dependenciesIdx++] = reportDependency;
-                logger.info("Adding dependency {}", reportDependency.getTitle());
+            for (VulnerabilitiesResult vulnerability : vulnerabilities) {
+                logger.info("Entity {}", vulnerability);
             }
 
-            reportModel.setDependencies(reportDependencies);
         } catch (IOException e) {
             e.printStackTrace();
+        } finally {
+            try {
+                if (response != null)
+                    response.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 
-    private void requestChild(PackageDescriptor packageDescriptor, Set<GradleArtifact> children) {
+    private void requestChild(Artifacts currentArtifact, Set<GradleArtifact> children) {
         children.forEach(gradleArtifact -> {
-             PackageDescriptor descriptor = new PackageDescriptor("maven", gradleArtifact.getGroup(), gradleArtifact.getName(), gradleArtifact.getVersion());
-            if (!dependenciesPackages.containsKey(descriptor)){
+
+            Artifacts artifact = new Artifacts(gradleArtifact.getName(), gradleArtifact.getVersion(), gradleArtifact.getGroup());
+            logger.info("Artifact {}", currentArtifact);
+
+            if (!dependenciesPackages.containsKey(artifact)){
                 logger.info("Gradle Artifact Child group {}, name {}, version {}", gradleArtifact.getGroup(), gradleArtifact.getName(), gradleArtifact.getVersion());
-                descriptor = request.add("maven", gradleArtifact.getGroup(), gradleArtifact.getName(), gradleArtifact.getVersion());
-                dependenciesPackages.put(descriptor, packageDescriptor);
-                requestChild(descriptor, gradleArtifact.getChildren());
+                REQUEST_BODY.add(artifact);
+                dependenciesPackages.put(artifact, currentArtifact);
+
+                // TODO modify to show dependency tree
+                ReportDependencies reportDependency = new ReportDependencies(gradleArtifact.getGroup() + ":" + gradleArtifact.getName(), gradleArtifact.getVersion());
+
+                if (!reportModel.getDependencies().contains(reportDependency))
+                    reportModel.getDependencies().add(reportDependency);
+
+                requestChild(artifact, gradleArtifact.getChildren());
             }
         });
     }
@@ -261,7 +268,7 @@ public class ValidateDependenciesTask extends AbstractTask {
                     licenseFound = KNOWN_LICENSE.get(license.getUrl());
 
                 if (!licenseFound.equals("")){
-                    List<ReportDependencies> reportDependency = Arrays.stream(reportModel.getDependencies()).filter(reportDependencies -> jar.getName().contains(reportDependencies.getTitle())).collect(Collectors.toList());
+                    List<ReportDependencies> reportDependency = reportModel.getDependencies().stream().filter(reportDependencies -> jar.getName().contains(reportDependencies.getTitle())).collect(Collectors.toList());
                     logger.info("Report Dependency found {}", reportDependency.size());
 
                     ReportLicense reportLicense = new ReportLicense();
@@ -292,7 +299,7 @@ public class ValidateDependenciesTask extends AbstractTask {
                     String license = KNOWN_LICENSE.get(keysLicense);
 
                     logger.info("ReportModel dependencies {}", reportModel.getDependencies() == null);
-                    logger.info("There are {} dependencies ready to write", reportModel.getDependencies().length);
+                    logger.info("There are {} dependencies ready to write", reportModel.getDependencies().size());
                     logger.info("Jar file name {}", jarFile.getName());
 
                     ReportDependencies reportDependency = null;
@@ -301,17 +308,23 @@ public class ValidateDependenciesTask extends AbstractTask {
                         logger.info("One dependency");
                         if (reportDependencies != null) {
                             logger.info("Report Dependency name {}", reportDependencies.getTitle());
-                            if (jarFile.getName().contains(reportDependencies.getTitle())) {
+                            if (jarFile.getName().contains(reportDependencies.getTitle().replace(":", "\\"))) {
                                 reportDependency = reportDependencies;
                                 logger.info("Found correspondence.");
+                                break;
                             }
                         }
                     }
+
                     logger.info("Finish dependencies");
+                    logger.info("License {}", license);
+                    logger.info("File {}", fileName);
 
                     ReportLicense reportLicense = new ReportLicense();
                     reportLicense.setName(license);
                     reportLicense.setOrigins(String.format("Commentary from %s file", fileName));
+
+                    logger.info("Produced report license");
 
                     logger.info("Writing license to {}", reportDependency.getTitle());
                     reportDependency.setLicense(new ReportLicense[]{reportLicense});

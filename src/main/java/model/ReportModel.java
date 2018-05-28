@@ -1,13 +1,14 @@
 package model;
 
 import java.io.Serializable;
+import java.util.List;
 
 public class ReportModel implements Serializable {
     private String id;
     private String version;
     private String name;
     private String description;
-    private ReportDependencies[] dependencies;
+    private List<ReportDependencies> dependencies;
 
     public String getId() {
         return id;
@@ -25,7 +26,7 @@ public class ReportModel implements Serializable {
         return description;
     }
 
-    public ReportDependencies[] getDependencies() {
+    public List<ReportDependencies> getDependencies() {
         return dependencies;
     }
 
@@ -45,7 +46,7 @@ public class ReportModel implements Serializable {
         this.description = description;
     }
 
-    public void setDependencies(ReportDependencies[] dependencies) {
+    public void setDependencies(List<ReportDependencies> dependencies) {
         this.dependencies = dependencies;
     }
 

@@ -1,6 +1,7 @@
 package model;
 
 import java.io.Serializable;
+import java.util.Arrays;
 
 public class ReportDependencies implements Serializable {
     /**
@@ -67,5 +68,35 @@ public class ReportDependencies implements Serializable {
 
     public void setVulnerabilities(ReportVulnerabilities[] vulnerabilities) {
         this.vulnerabilities = vulnerabilities;
+    }
+
+    public ReportDependencies(String title, String main_version) {
+        this.title = title;
+        this.main_version = main_version;
+    }
+
+    @Override
+    public String toString() {
+        return String.format("Title: %s, main version: %s, license: %s, hierarchy: %s, vulnerabilities: %s",
+                this.title,
+                this.main_version,
+                Arrays.toString(this.license),
+                Arrays.toString(this.hierarchy),
+                Arrays.toString(this.vulnerabilities));
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj.getClass().equals(ReportDependencies.class)){
+            ReportDependencies dependency = (ReportDependencies) obj;
+            return this.title.equals(dependency.title) && this.main_version.equals(dependency.main_version);
+        }
+        return false;
+    }
+
+    @Override
+    public int hashCode() {
+        return this.title.hashCode() * 2
+                + this.main_version.hashCode() * 3;
     }
 }

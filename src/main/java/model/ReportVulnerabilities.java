@@ -1,12 +1,18 @@
 package model;
 
 import java.io.Serializable;
+import java.util.Arrays;
 
 public class ReportVulnerabilities implements Serializable {
     /**
      * Indicates the name of the vulnerability found.
      */
     private String title;
+
+    /**
+     * Unique identifier of the vulnerability in the dependency it was found on.
+     */
+    private long id;
 
     /**
      * Describes the vulnerability and what it can do.
@@ -23,6 +29,10 @@ public class ReportVulnerabilities implements Serializable {
         return title;
     }
 
+    public long getId() {
+        return id;
+    }
+
     public String getDescription() {
         return description;
     }
@@ -37,6 +47,10 @@ public class ReportVulnerabilities implements Serializable {
 
     public void setTitle(String title) {
         this.title = title;
+    }
+
+    public void setId(long id) {
+        this.id = id;
     }
 
     public void setDescription(String description) {
@@ -56,5 +70,10 @@ public class ReportVulnerabilities implements Serializable {
         this.description = description;
         this.references = references;
         this.versions = versions;
+    }
+
+    @Override
+    public String toString() {
+        return String.format("Title: %s, id: %s, description: %s, references: %s, version: %s", title, id, description, Arrays.toString(references), Arrays.toString(versions));
     }
 }
