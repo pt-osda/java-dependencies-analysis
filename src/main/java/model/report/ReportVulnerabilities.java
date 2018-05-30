@@ -1,9 +1,10 @@
-package model;
+package model.report;
 
 import java.io.Serializable;
 import java.util.Arrays;
 
 public class ReportVulnerabilities implements Serializable {
+    // <editor-fold dec="Fields used to represent a vulnerability in the report.">
     /**
      * Indicates the name of the vulnerability found.
      */
@@ -24,6 +25,7 @@ public class ReportVulnerabilities implements Serializable {
      * Indicates all the versions of the current dependency vulnerable to the vulnerability.
      */
     private String[] versions;
+    // </editor-fold>
 
     public String getTitle() {
         return title;
@@ -65,15 +67,15 @@ public class ReportVulnerabilities implements Serializable {
         this.versions = versions;
     }
 
+    @Override
+    public String toString() {
+        return String.format("Title: %s, id: %s, description: %s, references: %s, version: %s", title, id, description, Arrays.toString(references), Arrays.toString(versions));
+    }
+
     public ReportVulnerabilities(String title, String description, String[] references, String[] versions) {
         this.title = title;
         this.description = description;
         this.references = references;
         this.versions = versions;
-    }
-
-    @Override
-    public String toString() {
-        return String.format("Title: %s, id: %s, description: %s, references: %s, version: %s", title, id, description, Arrays.toString(references), Arrays.toString(versions));
     }
 }

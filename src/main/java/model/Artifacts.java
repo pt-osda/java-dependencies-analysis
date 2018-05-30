@@ -42,13 +42,7 @@ public class Artifacts implements Serializable {
         this.group = group;
     }
 
-    public Artifacts(String name, String version, String group) {
-        pm = "maven";
-        this.name = name;
-        this.version = version;
-        this.group = group;
-    }
-
+    //<editor-fold desc="Override methods">
     @Override
     public String toString() {
         return String.format("\"pm\" \"%s\", \"name\" \"%s\", \"version\" \"%s\", \"group\" \"%s\"", pm, name, version, group);
@@ -72,5 +66,13 @@ public class Artifacts implements Serializable {
                 + this.group.hashCode() * 3
                 + this.name.hashCode() * 5
                 + this.version.hashCode() * 7;
+    }
+    //</editor-fold>
+
+    public Artifacts(String name, String version, String group) {
+        pm = "maven";
+        this.name = name;
+        this.version = version;
+        this.group = group;
     }
 }

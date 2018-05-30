@@ -1,5 +1,6 @@
-package model;
+package model.report;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.io.Serializable;
 
 public class ReportLicense implements Serializable {
@@ -7,7 +8,8 @@ public class ReportLicense implements Serializable {
      * Indicates the name of the license found for the dependency
      * e.g MIT License
      */
-    private String spdx_id = "";
+    @JsonProperty(value = "spdx_id")
+    private String spdxId = "";
 
     /**
      * Indicates where was the license found, the strategy that successfully found the license
@@ -19,19 +21,24 @@ public class ReportLicense implements Serializable {
      */
     private String source = "";
 
-    public String getSpdx_id() {
-        return spdx_id;
+    public String getSpdxId() {
+        return spdxId;
     }
 
     public String getSource() {
         return source;
     }
 
-    public void setSpdx_id(String spdx_id) {
-        this.spdx_id = spdx_id;
+    public void setSpdxId(String spdxId) {
+        this.spdxId = spdxId;
     }
 
     public void setSource(String source) {
         this.source = source;
+    }
+
+    @Override
+    public String toString() {
+        return String.format("License name %s, found in %s", spdxId, source);
     }
 }

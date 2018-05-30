@@ -1,5 +1,6 @@
 package model;
 
+import model.report.ReportVulnerabilities;
 import java.util.List;
 
 public class VulnerabilitiesResult {

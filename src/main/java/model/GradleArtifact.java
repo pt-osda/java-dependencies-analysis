@@ -1,5 +1,6 @@
-import org.gradle.api.artifacts.ResolvedDependency;
+package model;
 
+import org.gradle.api.artifacts.ResolvedDependency;
 import java.util.HashSet;
 import java.util.Set;
 

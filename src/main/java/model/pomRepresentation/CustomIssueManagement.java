@@ -1,4 +1,4 @@
-package model;
+package model.pomRepresentation;
 
 public class CustomIssueManagement {
     //<editor-fold desc="Fields of xml representation">

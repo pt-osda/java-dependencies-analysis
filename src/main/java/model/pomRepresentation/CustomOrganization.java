@@ -1,4 +1,4 @@
-package model;
+package model.pomRepresentation;
 
 public class CustomOrganization {
     //<editor-fold desc="Fields of xml representation">
