@@ -31,7 +31,7 @@ public class ReportDependencies implements Serializable {
      * dependency of a dependency and if so shows how "far" it is from the direct dependency
      */
     //private ReportHierarchy[] parents;  // TODO find the information needed for this field.
-    private String[] parents;
+    private List<String> parents;
 
     /**
      * Indicates all the vulnerabilities found in this dependency.
@@ -59,7 +59,7 @@ public class ReportDependencies implements Serializable {
         return parents;
     }*/
 
-    public String[] getParents() {
+    public List<String> getParents() {
         return parents;
     }
 
@@ -89,8 +89,8 @@ public class ReportDependencies implements Serializable {
         this.parents = parents;
     }*/
 
-    public void setParents(String[] parents) {
-        this.parents = parents;
+    public void addParents(String children) {   // TODO change name to children.
+        this.parents.add(children);
     }
 
     public void setVulnerabilities(ReportVulnerabilities[] vulnerabilities) {
@@ -109,7 +109,7 @@ public class ReportDependencies implements Serializable {
                 this.title,
                 this.mainVersion,
                 this.licenses.toString(),
-                Arrays.toString(this.parents),
+                this.parents,
                 Arrays.toString(this.vulnerabilities));
     }
 
@@ -117,15 +117,15 @@ public class ReportDependencies implements Serializable {
     public boolean equals(Object obj) {
         if (obj.getClass().equals(ReportDependencies.class)){
             ReportDependencies dependency = (ReportDependencies) obj;
-            return this.title.equals(dependency.title) && this.mainVersion.equals(dependency.mainVersion);
+            return this.title.equals(dependency.title);// && this.mainVersion.equals(dependency.mainVersion);
         }
         return false;
     }
 
     @Override
     public int hashCode() {
-        return this.title.hashCode() * 2
-                + this.mainVersion.hashCode() * 3;
+        return this.title.hashCode() * 2;
+                //+ this.mainVersion.hashCode() * 3;
     }
     // </editor-fold>
 
@@ -134,7 +134,7 @@ public class ReportDependencies implements Serializable {
         this.mainVersion = mainVersion;
         this.licenses = new ArrayList<>();
         //this.parents = new ReportHierarchy[0];
-        this.parents = new String[0];
+        this.parents = new ArrayList<>();
         this.vulnerabilities = new ReportVulnerabilities[0];
     }
 }

@@ -59,6 +59,18 @@ public class ReportModel implements Serializable {
         this.timestamp = timestamp;
     }
 
+    @Override
+    public String toString() {
+        return "ReportModel{" +
+                "id='" + id + '\'' +
+                ", version='" + version + '\'' +
+                ", name='" + name + '\'' +
+                ", description='" + description + '\'' +
+                ", dependencies=" + dependencies +
+                ", timestamp='" + timestamp + '\'' +
+                '}';
+    }
+
     public ReportModel(String projectName){
         id = "Id";
         version = "1.0.0";

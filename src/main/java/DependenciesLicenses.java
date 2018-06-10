@@ -1,3 +1,6 @@
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.databind.DeserializationConfig;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import model.pomRepresentation.CustomLicense;
 import model.pomRepresentation.POMModel;
@@ -69,10 +72,10 @@ public class DependenciesLicenses {
 
         while (entries.hasMoreElements() && files < 2) {
             final JarEntry entry = entries.nextElement();
-            logger.info("New entry {}", entry.getName());
 
             final String entryName = (new File(entry.getName())).getName().toLowerCase(); // the last name of the file or directory
             if (!entry.isDirectory() && entryName.equals("pom.xml")) {
+                logger.info("New entry {}", entry.getName());
                 files++;
                 logger.info("POM file found: {}", entry.getName());
                 try {
@@ -83,6 +86,7 @@ public class DependenciesLicenses {
                 }
             }
             if (!entry.isDirectory() && entryName.contains("license")){
+                logger.info("New entry {}", entry.getName());
                 files++;
                 logger.info("LICENSE File found: {}", entry.getName());
                 try {
@@ -98,6 +102,7 @@ public class DependenciesLicenses {
         ZipEntry entryPomFile = jar.getEntry(pomFile);
         BufferedReader reader = new BufferedReader(new InputStreamReader(jar.getInputStream(entryPomFile)));
         XmlMapper xmlMapper = new XmlMapper();
+        xmlMapper.configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true); // TODO check this approach for empty array of dependencies like in dependency slj4f-api in cloudfoundry-certificate-truster
         POMModel pomModel = xmlMapper.readValue(reader, POMModel.class);
 
         logger.info("Pom Model licenses: {}", pomModel.getLicenses());
@@ -159,7 +164,7 @@ public class DependenciesLicenses {
 
                     logger.info("Produced report license");
 
-                    logger.info("Current licenses {}", reportDependency.get(0).getLicenses().toString());
+                    logger.info("Current licenses {}", reportDependency.get(0).getLicenses().toString());   // TODO correct out of bounds exception
 
                     logger.info("Writing license number {} to {}", reportDependency.get(0).getLicenses().size(), reportDependency.get(0).getTitle());
                     reportDependency.get(0).addLicense(reportLicense);

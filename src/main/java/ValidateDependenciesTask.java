@@ -33,7 +33,7 @@ public class ValidateDependenciesTask extends AbstractTask {
         reportModel = DependenciesVulnerabilities.getVulnerabilities(configurationContainer, reportModel, logger);
         reportModel = DependenciesLicenses.findDependenciesLicenses(configurationContainer, reportModel, logger);
 
-        String thisMoment = ZonedDateTime.now( ZoneOffset.UTC ).format( DateTimeFormatter.ISO_INSTANT );
+        String thisMoment = ZonedDateTime.now(ZoneOffset.UTC).format(DateTimeFormatter.ISO_INSTANT);
 
         reportModel.setTimestamp(thisMoment);
 
@@ -53,6 +53,9 @@ public class ValidateDependenciesTask extends AbstractTask {
         configurationContainer
                 .forEach(configuration -> {
                     logger.info("Configuration {}", configuration.getName());
+                    configuration.getDependencies()
+                            .forEach(dependency -> logger.info("Dependency {}", dependency));
+
                     configuration.getDependencies()
                             .stream()
                             .filter(dependency -> !foundDependencies.contains(dependency))

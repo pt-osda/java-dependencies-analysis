@@ -9,7 +9,7 @@ public class CustomDependency {
     private String groupId;
     private String artifactId;
     private String version;
-    private String typ = "jar";
+    private String type = "jar";
     private String classifier;
     private String scope;
     private String systemPath;
@@ -32,8 +32,8 @@ public class CustomDependency {
         return version;
     }
 
-    public String getTyp() {
-        return typ;
+    public String getType() {
+        return type;
     }
 
     public String getClassifier() {
@@ -68,8 +68,8 @@ public class CustomDependency {
         this.version = version;
     }
 
-    public void setTyp(String typ) {
-        this.typ = typ;
+    public void setType(String type) {
+        this.type = type;
     }
 
     public void setClassifier(String classifier) {
@@ -92,4 +92,18 @@ public class CustomDependency {
         this.exclusions = exclusions;
     }
     //</editor-fold>
+
+    public CustomDependency(){
+        this.groupId = "";
+        this.artifactId = "";
+        this.version = "";
+        this.type = "";
+        this.classifier = "";
+        this.scope = "";
+        this.systemPath = "";
+        this.optional = "";
+    }
+
+    public CustomDependency(String empty) {
+    }
 }

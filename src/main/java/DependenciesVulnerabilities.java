@@ -51,11 +51,20 @@ public class DependenciesVulnerabilities {
             Artifacts artifact = new Artifacts(gradleArtifact.getName(), gradleArtifact.getVersion(), gradleArtifact.getGroup());
             logger.info("Artifact {}", currentArtifact);
 
-            List<ReportDependencies> reportDependencies = reportModel.getDependencies()
-                    .stream()
-                    .filter(dependency -> dependency.getTitle().equals(gradleArtifact.getGroup() + ":" + gradleArtifact.getName()))
-                    .collect(Collectors.toList());
+            if (currentArtifact != null) {
+                ReportDependencies reportDependency = reportModel.getDependencies()
+                        .stream()
+                        .filter(dependency -> dependency.getTitle().equals(currentArtifact.getGroup() + ":" + currentArtifact.getName()))
+                        .collect(Collectors.toList()).get(0);
 
+                String childrenName = gradleArtifact.getGroup() + ":" + gradleArtifact.getName();
+
+                logger.info("Children name {}", childrenName);
+                if (!reportDependency.getParents().contains(childrenName)) {
+                    logger.info("Children added to {}", reportDependency.getTitle());
+                    reportDependency.addParents(childrenName);
+                }
+            }
             if (!dependenciesPackages.containsKey(artifact)){
                 logger.info("Gradle Artifact Child group {}, name {}, version {}", gradleArtifact.getGroup(), gradleArtifact.getName(), gradleArtifact.getVersion());
                 REQUEST_BODY.add(artifact);
@@ -66,6 +75,11 @@ public class DependenciesVulnerabilities {
 
                 if (!reportModel.getDependencies().contains(reportDependency))
                     reportModel.getDependencies().add(reportDependency);
+                else {
+                    ReportDependencies reportDependencies = reportModel.getDependencies().stream().filter(reportDependency::equals).collect(Collectors.toList()).get(0);
+                    if (reportDependencies.getMainVersion() == null)
+                        reportDependencies.setMainVersion(reportDependency.getMainVersion());
+                }
 
                 requestChild(artifact, gradleArtifact.getChildren());
             }

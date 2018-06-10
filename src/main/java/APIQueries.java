@@ -15,8 +15,10 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class APIQueries {
-    private static final String API_URL = "http://localhost:8080/gradle/dependency/vulnerabilities";
-    private static final String API_REPORT_URL = "http://localhost:8080/report";
+    //private static final String API_URL = "http://localhost:8080/gradle/dependency/vulnerabilities";
+    //private static final String API_REPORT_URL = "http://localhost:8080/report";
+    private static final String API_URL = "http://35.234.147.77/gradle/dependency/vulnerabilities";
+    private static final String API_REPORT_URL = "http://35.234.147.77/report";
     private static CloseableHttpClient httpClient;
 
     /**
@@ -50,20 +52,23 @@ public class APIQueries {
 
             logger.info("Response Status {}", response.getStatusLine().getStatusCode());
 
-            logger.info("Response {}", response.getStatusLine());
+            logger.info("Response {}\n", response.getStatusLine());
 
             VulnerabilitiesResult[] vulnerabilities = mapper.readValue(response.getEntity().getContent(), VulnerabilitiesResult[].class);
 
+            logger.info("Report model {}\n", reportModel);
             for (VulnerabilitiesResult vulnerability : vulnerabilities) {
-                logger.info("Entity {}", vulnerability);
+                logger.info("Entity {}\n", vulnerability);
                 ReportDependencies dependencies = new ReportDependencies(vulnerability.getTitle(), vulnerability.getMainVersion());
 
+                logger.info("Report Dependency {}\n", dependencies);
                 List<ReportDependencies> reportDependencies = reportModel.getDependencies()
                         .stream()
                         .filter(dependency -> dependency.equals(dependencies))
                         .collect(Collectors.toList());
 
                 if (!reportDependencies.isEmpty()){
+                    logger.info("Added vulnerabilities to {}", reportDependencies.get(0));
                     reportDependencies.get(0).setVulnerabilities(vulnerability.getVulnerabilities().toArray(new ReportVulnerabilities[0]));
                     reportDependencies.get(0).setVulnerabilitiesCount(vulnerability.getTotalVulnerabilities());
                 }
@@ -77,7 +82,7 @@ public class APIQueries {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            return reportModel; // TODO validar isto
+            return reportModel; // TODO validate
         }
     }
 
