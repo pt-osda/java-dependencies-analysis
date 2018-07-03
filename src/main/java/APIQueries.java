@@ -10,15 +10,16 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.gradle.api.logging.Logger;
+import threadPool.FinalThreadWork;
 import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
 
 public class APIQueries {
-    //private static final String API_URL = "http://localhost:8080/gradle/dependency/vulnerabilities";
-    //private static final String API_REPORT_URL = "http://localhost:8080/report";
-    private static final String API_URL = "http://35.234.147.77/gradle/dependency/vulnerabilities";
-    private static final String API_REPORT_URL = "http://35.234.147.77/report";
+    private static final String API_URL = "http://localhost:8080/gradle/dependency/vulnerabilities";
+    private static final String API_REPORT_URL = "http://localhost:8080/report";
+    //private static final String API_URL = "http://35.234.147.77/gradle/dependency/vulnerabilities";
+    //private static final String API_REPORT_URL = "http://35.234.147.77/report";
     private static CloseableHttpClient httpClient;
 
     /**
@@ -31,16 +32,20 @@ public class APIQueries {
     /**
      * Sends a request to the API querying about all vulnerabilities of every dependency in the project.
      * <br>
-     * The results are stored in the object representation of the report
-     * @param gradleArtifacts
+     * The results are stored in the object representation of the report.
+     * @param artifacts   The list of artifacts that represent the dependencies.
+     * @param reportModel   Th
+     * @param threadWork    The reference to thread where the addition of the vulnerabilities to their dependencies in
+     *                      the report model is done.
+     * @param logger    A reference to the plugin logger.
      */
-    public static ReportModel requestDependenciesVulnerabilities(List<Artifacts> gradleArtifacts, ReportModel reportModel, Logger logger) {
+    public static void requestDependenciesVulnerabilities(List<Artifacts> artifacts, ReportModel reportModel, FinalThreadWork threadWork, Logger logger) {
         CloseableHttpResponse response = null;
         try {
-            logger.info("Request body {}", gradleArtifacts.toString());
+            logger.info("Request body {}", artifacts.toString());
 
             ObjectMapper mapper = new ObjectMapper();
-            String obj = mapper.writeValueAsString(gradleArtifacts);
+            String obj = mapper.writeValueAsString(artifacts);
 
             HttpPost httpPost = new HttpPost(API_URL);
             httpPost.setEntity(new StringEntity(obj));
@@ -56,38 +61,43 @@ public class APIQueries {
 
             VulnerabilitiesResult[] vulnerabilities = mapper.readValue(response.getEntity().getContent(), VulnerabilitiesResult[].class);
 
-            logger.info("Report model {}\n", reportModel);
-            for (VulnerabilitiesResult vulnerability : vulnerabilities) {
-                logger.info("Entity {}\n", vulnerability);
-                ReportDependencies dependencies = new ReportDependencies(vulnerability.getTitle(), vulnerability.getMainVersion());
+            logger.info("Vulnerabilities {}", (Object[]) vulnerabilities);
 
-                logger.info("Report Dependency {}\n", dependencies);
-                List<ReportDependencies> reportDependencies = reportModel.getDependencies()
-                        .stream()
-                        .filter(dependency -> dependency.equals(dependencies))
-                        .collect(Collectors.toList());
+            threadWork.addAction(() -> {
+                logger.info("Running adding vulnerabilities.");
+                for (VulnerabilitiesResult vulnerability : vulnerabilities) {
+                    logger.info("Entity {}\n", vulnerability);
+                    ReportDependencies dependencies = new ReportDependencies(vulnerability.getTitle(), vulnerability.getMainVersion(), false);
 
-                if (!reportDependencies.isEmpty()){
-                    logger.info("Added vulnerabilities to {}", reportDependencies.get(0));
-                    reportDependencies.get(0).setVulnerabilities(vulnerability.getVulnerabilities().toArray(new ReportVulnerabilities[0]));
-                    reportDependencies.get(0).setVulnerabilitiesCount(vulnerability.getTotalVulnerabilities());
+                    logger.info("Report Dependency {}\n", dependencies);
+                    List<ReportDependencies> reportDependencies = reportModel.getDependencies()
+                            .stream()
+                            .filter(dependency -> dependency.equals(dependencies))
+                            .collect(Collectors.toList());
+
+                    if (!reportDependencies.isEmpty()) {
+                        logger.info("Added vulnerabilities to {}", reportDependencies.get(0));
+                        reportDependencies.get(0).setVulnerabilities(vulnerability.getVulnerabilities().toArray(new ReportVulnerabilities[0]));
+                        reportDependencies.get(0).setVulnerabilitiesCount(vulnerability.getTotalVulnerabilities());
+                    }
                 }
-            }
+            });
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.warn("An IOException occurred when trying to get the dependencies vulnerabilities {}.", e.getMessage());
         } finally {
             try {
                 if (response != null)
                     response.close();
             } catch (IOException e) {
-                e.printStackTrace();
+                logger.warn("The CloseableHttpResponse could not be closed {].", e.getMessage());
             }
-            return reportModel; // TODO validate
         }
     }
 
     /**
-     * Sends the report produced by the plugin to the API and closes all connections.
+     * Sends the report produced by the plugin to the API.
+     * @param reportModel   The report model where the license found will be added.
+     * @param logger    A reference to the plugin logger.
      */
     public static void sendReport(ReportModel reportModel, Logger logger) {
         CloseableHttpResponse response = null;
@@ -107,13 +117,13 @@ public class APIQueries {
 
             logger.info("Response {}", response.getStatusLine());
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.warn("An IOException occurred when trying to send the report produced to the API {}.", e.getMessage());
         } finally {
             if (response != null) {
                 try {
                     response.close();
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    logger.warn("The CloseableHttpResponse could not be closed {}.", e.getMessage());
                 }
             }
         }
@@ -122,11 +132,11 @@ public class APIQueries {
     /**
      * Shutdowns the client used in the course of the programme
      */
-    public static void finishClient(){
+    public static void finishClient(Logger logger){
         try {
             httpClient.close();
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.warn("The CloseableHttpClient could not be closed {}.", e.getMessage());
         }
     }
 }

@@ -1,5 +1,6 @@
 package model.report;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.gradle.api.logging.Logger;
 
@@ -30,16 +31,23 @@ public class ReportDependencies implements Serializable {
      * Indicates the hierarchy of the dependency. Showing if the dependency is used directly by the project or if it's a
      * dependency of a dependency and if so shows how "far" it is from the direct dependency
      */
-    //private ReportHierarchy[] parents;  // TODO find the information needed for this field.
-    private List<String> parents;
+    private List<String> children;
 
     /**
      * Indicates all the vulnerabilities found in this dependency.
      */
     private ReportVulnerabilities[] vulnerabilities;
 
+    /**
+     * Indicates the number of vulnerabilities present in this dependency
+     */
     @JsonProperty(value = "vulnerabilities_count")
     private int vulnerabilitiesCount;
+
+    /**
+     * Indicates whether this dependency is being used directly by the project or if it's a transitive dependency
+     */
+    private boolean direct;
     // </editor-fold>
 
     // <editor-fold desc="Getters of fields">
@@ -55,12 +63,8 @@ public class ReportDependencies implements Serializable {
         return licenses;
     }
 
-    /*public ReportHierarchy[] getParents() {
-        return parents;
-    }*/
-
-    public List<String> getParents() {
-        return parents;
+    public List<String> getChildren() {
+        return children;
     }
 
     public ReportVulnerabilities[] getVulnerabilities() {
@@ -69,6 +73,10 @@ public class ReportDependencies implements Serializable {
 
     public int getVulnerabilitiesCount() {
         return vulnerabilitiesCount;
+    }
+
+    public boolean isDirect() {
+        return direct;
     }
     // </editor-fold>
 
@@ -85,12 +93,8 @@ public class ReportDependencies implements Serializable {
         this.licenses.add(license);
     }
 
-    /*public void setParents(ReportHierarchy[] parents) {
-        this.parents = parents;
-    }*/
-
-    public void addParents(String children) {   // TODO change name to children.
-        this.parents.add(children);
+    public void addChildren(String children) {
+        this.children.add(children);
     }
 
     public void setVulnerabilities(ReportVulnerabilities[] vulnerabilities) {
@@ -99,6 +103,10 @@ public class ReportDependencies implements Serializable {
 
     public void setVulnerabilitiesCount(int vulnerabilitiesCount) {
         this.vulnerabilitiesCount = vulnerabilitiesCount;
+    }
+
+    public void setDirect(boolean direct) {
+        this.direct = direct;
     }
     // </editor-fold>
 
@@ -109,7 +117,7 @@ public class ReportDependencies implements Serializable {
                 this.title,
                 this.mainVersion,
                 this.licenses.toString(),
-                this.parents,
+                this.children,
                 Arrays.toString(this.vulnerabilities));
     }
 
@@ -117,7 +125,7 @@ public class ReportDependencies implements Serializable {
     public boolean equals(Object obj) {
         if (obj.getClass().equals(ReportDependencies.class)){
             ReportDependencies dependency = (ReportDependencies) obj;
-            return this.title.equals(dependency.title);// && this.mainVersion.equals(dependency.mainVersion);
+            return this.title.equals(dependency.title);
         }
         return false;
     }
@@ -125,16 +133,25 @@ public class ReportDependencies implements Serializable {
     @Override
     public int hashCode() {
         return this.title.hashCode() * 2;
-                //+ this.mainVersion.hashCode() * 3;
     }
     // </editor-fold>
 
-    public ReportDependencies(String title, String mainVersion) {
+    public ReportDependencies(String title, String mainVersion, boolean direct) {
         this.title = title;
         this.mainVersion = mainVersion;
         this.licenses = new ArrayList<>();
-        //this.parents = new ReportHierarchy[0];
-        this.parents = new ArrayList<>();
+        this.children = new ArrayList<>();
         this.vulnerabilities = new ReportVulnerabilities[0];
+        this.direct = direct;
+    }
+
+    @JsonIgnore
+    public String getGroup() {
+        return this.title.split(":")[0];
+    }
+
+    @JsonIgnore
+    public String getArtifactId() {
+        return this.title.split(":")[1];
     }
 }

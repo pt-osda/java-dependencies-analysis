@@ -19,7 +19,11 @@ public class ReportVulnerabilities implements Serializable {
      * Describes the vulnerability and what it can do.
      */
     private String description;
-    private String[] references;    // TODO find what this field means.
+
+    /**
+     * An array of links that indicates where can be found more information about this vulnerability.
+     */
+    private String[] references;
 
     /**
      * Indicates all the versions of the current dependency vulnerable to the vulnerability.

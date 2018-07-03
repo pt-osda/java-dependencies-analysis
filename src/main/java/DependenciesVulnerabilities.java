@@ -1,88 +1,33 @@
 import model.Artifacts;
-import model.GradleArtifact;
 import model.report.ReportDependencies;
 import model.report.ReportModel;
-import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.logging.Logger;
-import java.util.HashMap;
-import java.util.LinkedList;
+import threadPool.FinalThreadWork;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 public class DependenciesVulnerabilities {
-    private static final List<Artifacts> REQUEST_BODY = new LinkedList<>();
-    private static final HashMap<Artifacts, Artifacts> dependenciesPackages = new HashMap<>();
-    private static Logger logger;
-    private static ReportModel reportModel;
-
     /**
      * Prepares the request for the API about all the project dependencies, including the direct and indirect ones.
-     * @param configurationContainer
-     * @param model
-     * @param log
-     * @return A pair containing the altered report object as the first element and the list of artifacts to query
+     * <br>
+     * Passing to the requestDependenciesVulnerabilities method a list of artifacts that is the mapping of the list of
+     * reported dependencies in the report model to an Artifact.
+     * @param reportModel   The report model where the license found will be added.
+     * @param threadWork    The reference to the thread doing the mapping of the responses in the final model.
+     * @param logger    A reference to the plugin logger.
      */
-    protected static ReportModel getVulnerabilities(ConfigurationContainer configurationContainer, ReportModel model, Logger log) {
-        logger = log;
-        reportModel = model;
-
-        Set<GradleArtifact> gradleArtifacts = configurationContainer
-                .stream()
-                .flatMap(configuration -> configuration.getResolvedConfiguration().getFirstLevelModuleDependencies().stream())
-                .distinct()
-                .map(resolvedDependency -> new GradleArtifact(null, resolvedDependency))
-                .collect(Collectors.toSet());
-
-        requestChild(null, gradleArtifacts);
-
-        return APIQueries.requestDependenciesVulnerabilities(REQUEST_BODY, reportModel, logger);
+    public static void getVulnerabilities(ReportModel reportModel, FinalThreadWork threadWork, Logger logger) {
+        APIQueries.requestDependenciesVulnerabilities(produceRequestBody(reportModel.getDependencies()), reportModel, threadWork, logger);
     }
 
-
     /**
-     * Recursive method to add the dependency to query to the API. This finds all the indirect dependencies and adds
-     * them to their "parent".
-     * @param currentArtifact The dependency that will have their dependency analysed
-     * @param children The dependencies of the currentArtifact, which is already a dependency
+     * Converts the reportDependencies in Artifacts so that the API can understand and find vulnerabilities for them.
+     * @param reportDependencies    The list of dependencies found in the project.
+     * @return  A list of artifacts that represent the dependencies of the project.
      */
-    private static void requestChild(Artifacts currentArtifact, Set<GradleArtifact> children) {
-        children.forEach(gradleArtifact -> {
-            Artifacts artifact = new Artifacts(gradleArtifact.getName(), gradleArtifact.getVersion(), gradleArtifact.getGroup());
-            logger.info("Artifact {}", currentArtifact);
-
-            if (currentArtifact != null) {
-                ReportDependencies reportDependency = reportModel.getDependencies()
-                        .stream()
-                        .filter(dependency -> dependency.getTitle().equals(currentArtifact.getGroup() + ":" + currentArtifact.getName()))
-                        .collect(Collectors.toList()).get(0);
-
-                String childrenName = gradleArtifact.getGroup() + ":" + gradleArtifact.getName();
-
-                logger.info("Children name {}", childrenName);
-                if (!reportDependency.getParents().contains(childrenName)) {
-                    logger.info("Children added to {}", reportDependency.getTitle());
-                    reportDependency.addParents(childrenName);
-                }
-            }
-            if (!dependenciesPackages.containsKey(artifact)){
-                logger.info("Gradle Artifact Child group {}, name {}, version {}", gradleArtifact.getGroup(), gradleArtifact.getName(), gradleArtifact.getVersion());
-                REQUEST_BODY.add(artifact);
-                dependenciesPackages.put(artifact, currentArtifact);
-
-                // TODO modify to show dependency tree
-                ReportDependencies reportDependency = new ReportDependencies(gradleArtifact.getGroup() + ":" + gradleArtifact.getName(), gradleArtifact.getVersion());
-
-                if (!reportModel.getDependencies().contains(reportDependency))
-                    reportModel.getDependencies().add(reportDependency);
-                else {
-                    ReportDependencies reportDependencies = reportModel.getDependencies().stream().filter(reportDependency::equals).collect(Collectors.toList()).get(0);
-                    if (reportDependencies.getMainVersion() == null)
-                        reportDependencies.setMainVersion(reportDependency.getMainVersion());
-                }
-
-                requestChild(artifact, gradleArtifact.getChildren());
-            }
-        });
+    private static List<Artifacts> produceRequestBody(List<ReportDependencies> reportDependencies) {
+        return reportDependencies.stream().map(
+                reportDependency -> new Artifacts(reportDependency.getArtifactId(), reportDependency.getMainVersion(), reportDependency.getGroup())
+        ).collect(Collectors.toList());
     }
 }
