@@ -64,6 +64,7 @@ public class DependenciesLicenses {
                         );
                     }
                 } catch (Exception e) {
+                    logger.warn("The as occurred an exception when attempting to process a jar file in search of a license file, {}", e.getMessage());
                     e.printStackTrace();    // TODO handle exception
                 } /*finally {
                     if (jarFile != null) {

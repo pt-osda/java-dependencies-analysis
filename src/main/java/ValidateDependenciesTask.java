@@ -1,5 +1,7 @@
+import com.fasterxml.jackson.databind.ObjectMapper;
 import model.Artifacts;
 import model.GradleArtifact;
+import model.Policy;
 import model.report.ReportDependencies;
 import model.report.ReportModel;
 import org.gradle.api.Project;
@@ -9,6 +11,7 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.tasks.TaskAction;
 import threadPool.FinalThreadWork;
 import threadPool.ThreadPool;
+import java.io.*;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
@@ -24,12 +27,33 @@ public class ValidateDependenciesTask extends AbstractTask {
         Project project = getProject();
         logger = getLogger();
 
+        Policy policy = null;
+
+        File policyFile = project.file(".osda");
+        InputStream inJson = null;
+
+        // TODO check how to react when there is no policy file.
+        try {
+            inJson = new FileInputStream(policyFile);
+            policy = new ObjectMapper().readValue(inJson, Policy.class);
+        } catch (IOException e) {
+            logger.warn("Exception thrown when trying to read the policy file {}.", e.getMessage());
+        } finally {
+            if (inJson != null) {
+                try {
+                    inJson.close();
+                } catch (IOException e) {
+                    logger.warn("Exception launched when attempting to close the InputStream {}.", e.getMessage());
+                }
+            }
+        }
+
         int availableProcessors = Runtime.getRuntime().availableProcessors();
         logger.info("Running with {} processors.", availableProcessors);
 
         ThreadPool threadPool = new ThreadPool(availableProcessors, 50, logger);
 
-        reportModel = new ReportModel(project.getName());
+        reportModel = new ReportModel(policy);
 
         ConfigurationContainer configurationContainer = project.getConfigurations();
 
@@ -154,7 +178,7 @@ public class ValidateDependenciesTask extends AbstractTask {
                         .filter(dependency -> dependency.getTitle().equals(currentArtifact.getGroup() + ":" + currentArtifact.getName()))
                         .collect(Collectors.toList()).get(0);
 
-                String childrenName = gradleArtifact.getGroup() + ":" + gradleArtifact.getName();
+                String childrenName = gradleArtifact.getGroup() + ":" + gradleArtifact.getName() + ":" + gradleArtifact.getVersion();
 
                 logger.info("Children name {}", childrenName);
                 if (!reportDependency.getChildren().contains(childrenName)) {

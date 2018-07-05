@@ -50,6 +50,7 @@ public class APIQueries {
             HttpPost httpPost = new HttpPost(API_URL);
             httpPost.setEntity(new StringEntity(obj));
             httpPost.addHeader("Content-Type", "application/json");
+            httpPost.addHeader("Cache-Control", "max-age=500");
 
             logger.info("Object to write {}", obj);
 

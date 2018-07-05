@@ -21,6 +21,11 @@ public class ReportLicense implements Serializable {
      */
     private String source = "";
 
+    /**
+     * Indicates if the license is valid considering the policy indicated in the project.
+     */
+    private boolean valid;
+
     public String getSpdxId() {
         return spdxId;
     }
@@ -29,12 +34,20 @@ public class ReportLicense implements Serializable {
         return source;
     }
 
+    public boolean isValid() {
+        return valid;
+    }
+
     public void setSpdxId(String spdxId) {
         this.spdxId = spdxId;
     }
 
     public void setSource(String source) {
         this.source = source;
+    }
+
+    public void setValid(boolean valid) {
+        this.valid = valid;
     }
 
     @Override
