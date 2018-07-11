@@ -8,14 +8,13 @@ import model.report.ReportModel;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.logging.Logger;
-import threadPool.FinalThreadWork;
-import threadPool.ThreadPool;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.stream.Collectors;
@@ -31,12 +30,12 @@ public class DependenciesLicenses {
      * @param configurationContainer    reference to obtain the configurations of the project. That is their artifacts
      *                                  and  dependencies
      * @param reportModel   The report model that represents every information found.
-     * @param threadPool    The reference to the threadPool where the analysis of a JarFile will happen
-     * @param threadWork    The reference to the thread that is responsible for write any changes found in the
+     * @param executor  The reference to the threadPool where the analysis of a JarFile will happen
+     * @param finalExecutor The reference to the thread that is responsible for write any changes found in the
      *                      reportModel.
      * @param logger    A reference to the plugin logger.
      */
-    public static void findDependenciesLicenses(ConfigurationContainer configurationContainer, ReportModel reportModel, ThreadPool threadPool, FinalThreadWork threadWork, Logger logger){
+    public static void findDependenciesLicenses(ConfigurationContainer configurationContainer, ReportModel reportModel, ExecutorService executor, ExecutorService finalExecutor, Logger logger){
         fillLicenses();
 
         for (Configuration configuration : configurationContainer){
@@ -49,9 +48,8 @@ public class DependenciesLicenses {
                 String absoluteFilePath = currentFile.getAbsolutePath();
                 logger.info("The current file is {}.", absoluteFilePath);
 
-                try {
+                try(JarFile jarFile = new JarFile(absoluteFilePath)) {
                     logger.info("Reading jar file.");
-                    JarFile jarFile = new JarFile(absoluteFilePath);    // TODO check how to use jarFile in lambda if declare outside of try
 
                     logger.info("JarFile name {}.", jarFile.getName());
 
@@ -59,22 +57,14 @@ public class DependenciesLicenses {
                         logger.info("Processing.");
 
                         PROCESSED_FILES.add(jarFile.getName());
-                        threadPool.execute(() ->
-                            findRequiredFiles(jarFile, reportModel, threadWork, logger)
+                        executor.submit(() ->
+                                findRequiredFiles(jarFile, reportModel, finalExecutor, logger)
                         );
                     }
                 } catch (Exception e) {
-                    logger.warn("The as occurred an exception when attempting to process a jar file in search of a license file, {}", e.getMessage());
-                    e.printStackTrace();    // TODO handle exception
-                } /*finally {
-                    if (jarFile != null) {
-                        try {
-                            jarFile.close();
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                }*/
+                    logger.warn("Occurred an exception when attempting to process a jar file in search of a license file, {}.", e.getMessage());
+                    //e.printStackTrace();    // TODO handle exception
+                }
             }
 
             logger.info("All configuration files were shown.");
@@ -86,11 +76,11 @@ public class DependenciesLicenses {
      * license.
      * @param jar   The Jar that is being analyzed in search of the License file and the .pom file
      * @param reportModel   The report model that represents every information found.
-     * @param threadWork    The reference to the thread that is responsible for write any changes found in the
+     * @param finalExecutor    The reference to the thread that is responsible for write any changes found in the
      *                      reportModel.
      * @param logger    A reference to the plugin logger.
      */
-    private static void findRequiredFiles(JarFile jar, ReportModel reportModel, FinalThreadWork threadWork, Logger logger){
+    private static void findRequiredFiles(JarFile jar, ReportModel reportModel, ExecutorService finalExecutor, Logger logger){
         final Enumeration<JarEntry> entries = jar.entries();
 
         int files = 0;
@@ -104,19 +94,19 @@ public class DependenciesLicenses {
                     files++;
                     logger.info("POM file found: {}.", entry.getName());
                     try {
-                        validatePomFile(jar, entry.getName(), reportModel, threadWork, logger);
-                        validateLicenseFromFile(jar, entry.getName(), reportModel, threadWork, logger);
+                        validatePomFile(jar, entry.getName(), reportModel, finalExecutor, logger);
+                        validateLicenseFromFile(jar, entry.getName(), reportModel, finalExecutor, logger);
                     } catch (IOException e) {
-                        logger.info("An IOException happened while validating the pom file {}.", e.getMessage());
+                        logger.warn("An IOException happened while validating the pom file {}.", e.getMessage());
                     }
                 }
                 else if (entryName.contains("license")){
                     files++;
                     logger.info("LICENSE File found: {}.", entry.getName());
                     try {
-                        validateLicenseFromFile(jar, entry.getName(), reportModel, threadWork, logger);
+                        validateLicenseFromFile(jar, entry.getName(), reportModel, finalExecutor, logger);
                     } catch (IOException e) {
-                        logger.info("An IOException happened while validating the License file {}.", e.getMessage());
+                        logger.warn("An IOException happened while validating the License file {}.", e.getMessage());
                     }
                 }
             }
@@ -141,11 +131,11 @@ public class DependenciesLicenses {
      * @param jar   The jar file that contains the .pom file.
      * @param pomFile   The path to the .pom file in the jar file.
      * @param reportModel   The report model where the license found will be added.
-     * @param threadWork    The thread where the addition of the license will be done.
+     * @param finalExecutor    The thread where the addition of the license will be done.
      * @param logger    A reference to the plugin logger.
      * @throws IOException thrown by xmlMapper.readValue
      */
-    private static void validatePomFile(JarFile jar, String pomFile, ReportModel reportModel, FinalThreadWork threadWork, Logger logger) throws IOException {
+    private static void validatePomFile(JarFile jar, String pomFile, ReportModel reportModel, ExecutorService finalExecutor, Logger logger) throws IOException {
         ZipEntry entryPomFile = jar.getEntry(pomFile);
 
         BufferedReader reader = new BufferedReader(new InputStreamReader(jar.getInputStream(entryPomFile)));
@@ -166,7 +156,7 @@ public class DependenciesLicenses {
 
             if (!licenseFound.equals("")){
                 String addingLicense = licenseFound;
-                threadWork.addAction(() -> {
+                finalExecutor.submit(() -> {
                     List<ReportDependencies> reportDependency = reportModel.getDependencies()
                             .stream()
                             .filter(reportDependencies -> jar.getName().contains(reportDependencies.getTitle()))
@@ -189,11 +179,11 @@ public class DependenciesLicenses {
      * @param jarFile   The Jar file where the file is
      * @param fileName  The name of the file to be analyzed.
      * @param reportModel   The report model where the license found will be added.
-     * @param threadWork    The thread where the addition of the license will be done.
+     * @param finalExecutor    The thread where the addition of the license will be done.
      * @param logger    A reference to the plugin logger.
      * @throws IOException thrown by read.readLine
      */
-    private static void validateLicenseFromFile(JarFile jarFile, String fileName, ReportModel reportModel, FinalThreadWork threadWork, Logger logger) throws IOException {
+    private static void validateLicenseFromFile(JarFile jarFile, String fileName, ReportModel reportModel, ExecutorService finalExecutor, Logger logger) throws IOException {
         ZipEntry entryFile = jarFile.getEntry(fileName);
 
         BufferedReader reader = new BufferedReader(new InputStreamReader(jarFile.getInputStream(entryFile)));
@@ -205,7 +195,7 @@ public class DependenciesLicenses {
                   logger.info("Line contains key: {}", keysLicense);
                   String license = KNOWN_LICENSE.get(keysLicense);
 
-                  threadWork.addAction(() -> {
+                  finalExecutor.submit(() -> {
                       logger.info("ReportModel dependencies {}", reportModel.getDependencies() == null);
                       logger.info("There are {} dependencies ready to write", reportModel.getDependencies().size());
                       logger.info("Jar file name {}", jarFile.getName());

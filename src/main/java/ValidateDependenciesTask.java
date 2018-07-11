@@ -9,13 +9,12 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.internal.AbstractTask;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.tasks.TaskAction;
-import threadPool.FinalThreadWork;
-import threadPool.ThreadPool;
 import java.io.*;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.concurrent.*;
 import java.util.stream.Collectors;
 
 public class ValidateDependenciesTask extends AbstractTask {
@@ -23,11 +22,16 @@ public class ValidateDependenciesTask extends AbstractTask {
     private ReportModel reportModel;
 
     @TaskAction
+    // TODO Add invalid licenses
+    // TODO add "token" for API access
+    // TODO fail if true in policy and invalid licenses
+    // TODO add admin
+    // TODO add cache time
     public void validateDependencies(){
         Project project = getProject();
         logger = getLogger();
 
-        Policy policy = null;
+        Policy policy;
 
         File policyFile = project.file(".osda");
         InputStream inJson = null;
@@ -37,7 +41,8 @@ public class ValidateDependenciesTask extends AbstractTask {
             inJson = new FileInputStream(policyFile);
             policy = new ObjectMapper().readValue(inJson, Policy.class);
         } catch (IOException e) {
-            logger.warn("Exception thrown when trying to read the policy file {}.", e.getMessage());
+            logger.error("Exception thrown when trying to read the policy file {}.", e.getMessage());
+            return;
         } finally {
             if (inJson != null) {
                 try {
@@ -48,10 +53,12 @@ public class ValidateDependenciesTask extends AbstractTask {
             }
         }
 
+        logger.info("Policy data: {}.", policy);
         int availableProcessors = Runtime.getRuntime().availableProcessors();
         logger.info("Running with {} processors.", availableProcessors);
 
-        ThreadPool threadPool = new ThreadPool(availableProcessors, 50, logger);
+        ExecutorService finalExecutor = Executors.newSingleThreadExecutor();
+        ExecutorService executor = Executors.newFixedThreadPool(availableProcessors * 2);
 
         reportModel = new ReportModel(policy);
 
@@ -64,29 +71,32 @@ public class ValidateDependenciesTask extends AbstractTask {
         logger.info("Report Model {}.", reportModel);
         APIQueries.startClient();
 
-        FinalThreadWork threadWork = new FinalThreadWork(reportModel, logger);
-
         logger.info("Create threadWork.");
+
+        executor.submit(() ->
+                DependenciesVulnerabilities.getVulnerabilities(reportModel, finalExecutor, logger)
+        );
+
+        DependenciesLicenses.findDependenciesLicenses(configurationContainer, reportModel, executor, finalExecutor, logger);
+
+        executor.shutdown();
         try {
-            threadPool.execute(() ->
-                DependenciesVulnerabilities.getVulnerabilities(reportModel, threadWork, logger)
-            );
+            while(!executor.awaitTermination(500, TimeUnit.MILLISECONDS))
+                logger.info("Waiting for first shutdown"); // TODO check
         } catch (InterruptedException e) {
-            logger.warn("Thread executing getVulnerabilities was interrupted {}.", e.getMessage());
+            logger.warn("An exception occurred while waiting for the shutdown of threadPool {}.", e.getMessage()); // TODO handle
         }
 
-        DependenciesLicenses.findDependenciesLicenses(configurationContainer, reportModel, threadPool, threadWork, logger);
+        logger.info("End first shutdown");
+        finalExecutor.shutdown();
 
         try {
-            threadPool.shutdown();
-            threadPool.awaitTermination(1000);
+            while (!finalExecutor.awaitTermination(500, TimeUnit.MILLISECONDS))
+                logger.info("Waiting for second shutdown.");
         } catch (InterruptedException e) {
-            logger.warn("Await Termination of ThreadPool was interrupted {}.", e.getMessage());
+            logger.warn("An exception occurred while waiting for the shutdown of merge thread (thread responsible for the junction of the elements of reportModel {}.", e.getMessage()); // TODO handle
         }
-
-        threadWork.shutdown();
-        threadWork.awaitTermination();  // TODO check
-
+        
         String thisMoment = ZonedDateTime.now(ZoneOffset.UTC).format(DateTimeFormatter.ISO_INSTANT);
 
         reportModel.setTimestamp(thisMoment);
@@ -127,8 +137,8 @@ public class ValidateDependenciesTask extends AbstractTask {
 
                     configuration.getDependencies()
                             .stream()
-                            .filter(dependency -> !foundDependencies.contains(dependency))
                             .map(dependency -> new ReportDependencies(dependency.getGroup() + ":" + dependency.getName(), dependency.getVersion(), true))
+                            .filter(dependency -> !foundDependencies.contains(dependency))
                             .forEach(newDependency -> {
                                 foundDependencies.add(newDependency);
                                 logger.info("Added dependency {}", newDependency);

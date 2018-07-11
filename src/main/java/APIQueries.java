@@ -10,9 +10,9 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.gradle.api.logging.Logger;
-import threadPool.FinalThreadWork;
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
 
 public class APIQueries {
@@ -35,11 +35,11 @@ public class APIQueries {
      * The results are stored in the object representation of the report.
      * @param artifacts   The list of artifacts that represent the dependencies.
      * @param reportModel   Th
-     * @param threadWork    The reference to thread where the addition of the vulnerabilities to their dependencies in
-     *                      the report model is done.
+    // * @param threadWork    The reference to thread where the addition of the vulnerabilities to their dependencies in
+     //*                      the report model is done.
      * @param logger    A reference to the plugin logger.
      */
-    public static void requestDependenciesVulnerabilities(List<Artifacts> artifacts, ReportModel reportModel, FinalThreadWork threadWork, Logger logger) {
+    public static void requestDependenciesVulnerabilities(List<Artifacts> artifacts, ReportModel reportModel, ExecutorService finalExecutor, Logger logger) {
         CloseableHttpResponse response = null;
         try {
             logger.info("Request body {}", artifacts.toString());
@@ -51,6 +51,7 @@ public class APIQueries {
             httpPost.setEntity(new StringEntity(obj));
             httpPost.addHeader("Content-Type", "application/json");
             httpPost.addHeader("Cache-Control", "max-age=500");
+            httpPost.addHeader("Authorization", "Bearer rui");
 
             logger.info("Object to write {}", obj);
 
@@ -60,31 +61,44 @@ public class APIQueries {
 
             logger.info("Response {}\n", response.getStatusLine());
 
-            VulnerabilitiesResult[] vulnerabilities = mapper.readValue(response.getEntity().getContent(), VulnerabilitiesResult[].class);
+            int statusCode = response.getStatusLine().getStatusCode();
+            if (statusCode == 200) {
+                VulnerabilitiesResult[] vulnerabilities = mapper.readValue(response.getEntity().getContent(), VulnerabilitiesResult[].class);
 
-            logger.info("Vulnerabilities {}", (Object[]) vulnerabilities);
+                logger.info("Vulnerabilities {}", (Object[]) vulnerabilities);
 
-            threadWork.addAction(() -> {
-                logger.info("Running adding vulnerabilities.");
-                for (VulnerabilitiesResult vulnerability : vulnerabilities) {
-                    logger.info("Entity {}\n", vulnerability);
-                    ReportDependencies dependencies = new ReportDependencies(vulnerability.getTitle(), vulnerability.getMainVersion(), false);
+                finalExecutor.submit(() -> {
+                    logger.info("Running adding vulnerabilities.");
+                    for (VulnerabilitiesResult vulnerability : vulnerabilities) {
+                        logger.info("Entity {}\n", vulnerability);
+                        ReportDependencies dependencies = new ReportDependencies(vulnerability.getTitle(), vulnerability.getMainVersion(), false);
 
-                    logger.info("Report Dependency {}\n", dependencies);
-                    List<ReportDependencies> reportDependencies = reportModel.getDependencies()
-                            .stream()
-                            .filter(dependency -> dependency.equals(dependencies))
-                            .collect(Collectors.toList());
+                        logger.info("Report Dependency {}\n", dependencies);
+                        List<ReportDependencies> reportDependencies = reportModel.getDependencies()
+                                .stream()
+                                .filter(dependency -> dependency.equals(dependencies))
+                                .collect(Collectors.toList());
 
-                    if (!reportDependencies.isEmpty()) {
-                        logger.info("Added vulnerabilities to {}", reportDependencies.get(0));
-                        reportDependencies.get(0).setVulnerabilities(vulnerability.getVulnerabilities().toArray(new ReportVulnerabilities[0]));
-                        reportDependencies.get(0).setVulnerabilitiesCount(vulnerability.getTotalVulnerabilities());
+                        if (!reportDependencies.isEmpty()) {
+                            logger.info("Added vulnerabilities to {}", reportDependencies.get(0));
+                            reportDependencies.get(0).setVulnerabilities(vulnerability.getVulnerabilities().toArray(new ReportVulnerabilities[0]));
+                            reportDependencies.get(0).setVulnerabilitiesCount(vulnerability.getTotalVulnerabilities());
+                        }
                     }
-                }
-            });
+                });
+            } else {
+                String errorInfo = String.format("The request to the API was not successful. Status code was %s.", statusCode);
+                logger.info(errorInfo);
+                finalExecutor.submit(() ->
+                    reportModel.setErrorInfo(errorInfo)
+                );
+            }
         } catch (IOException e) {
-            logger.warn("An IOException occurred when trying to get the dependencies vulnerabilities {}.", e.getMessage());
+            String errorInfo = String.format("An IOException occurred when trying to get the dependencies vulnerabilities %s.", e.getMessage());
+            logger.warn(errorInfo);
+            finalExecutor.submit(() ->
+                    reportModel.setErrorInfo(errorInfo)
+            );
         } finally {
             try {
                 if (response != null)
@@ -109,6 +123,7 @@ public class APIQueries {
             HttpPost httpPost = new HttpPost(API_REPORT_URL);
             httpPost.setEntity(new StringEntity(report));
             httpPost.addHeader("Content-Type", "application/json");
+            httpPost.addHeader("Authorization", "Bearer rui");
 
             logger.info("Object to write {}", report);
 

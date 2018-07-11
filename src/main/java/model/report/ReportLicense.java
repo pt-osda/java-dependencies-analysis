@@ -52,6 +52,8 @@ public class ReportLicense implements Serializable {
 
     @Override
     public String toString() {
-        return String.format("License name %s, found in %s", spdxId, source);
+        return String.format("License name %s, found in %s",
+                spdxId,
+                source);
     }
 }

@@ -3,6 +3,8 @@ package model;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.util.Arrays;
+
 public class Policy {
     //<editor-fold desc="fields included in a policy file">
     @JsonProperty(value = "project_id")
@@ -10,6 +12,14 @@ public class Policy {
 
     @JsonProperty(value = "project_name")
     private String projectName;
+
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    @JsonProperty(value = "project_version")
+    private String projectVersion;
+
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    @JsonProperty(value = "project_description")
+    private String projectDescription;
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private String organization;
@@ -22,13 +32,19 @@ public class Policy {
     @JsonProperty(value = "repo_owner")
     private String repositoryOwner;
 
+    @JsonProperty(value = "admin")
+    private String administrator;
+
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     @JsonProperty(value = "invalid_licenses")
-    private String[] invalidLicenses;
+    private String[] invalidLicenses = new String[0];
 
-    private boolean fail;
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private boolean fail = false;
 
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     @JsonProperty(value = "api_cache_time")
-    private int apiCacheTime;
+    private int apiCacheTime = 0;
     //</editor-fold>
 
     public String getProjectId() {
@@ -37,6 +53,14 @@ public class Policy {
 
     public String getProjectName() {
         return projectName;
+    }
+
+    public String getProjectVersion() {
+        return projectVersion;
+    }
+
+    public String getProjectDescription() {
+        return projectDescription;
     }
 
     public String getOrganization() {
@@ -49,6 +73,10 @@ public class Policy {
 
     public String getRepositoryOwner() {
         return repositoryOwner;
+    }
+
+    public String getAdministrator() {
+        return administrator;
     }
 
     public String[] getInvalidLicenses() {
@@ -71,6 +99,14 @@ public class Policy {
         this.projectName = projectName;
     }
 
+    public void setProjectVersion(String projectVersion) {
+        this.projectVersion = projectVersion;
+    }
+
+    public void setProjectDescription(String projectDescription) {
+        this.projectDescription = projectDescription;
+    }
+
     public void setOrganization(String organization) {
         this.organization = organization;
     }
@@ -83,6 +119,10 @@ public class Policy {
         this.repositoryOwner = repositoryOwner;
     }
 
+    public void setAdministrator(String administrator) {
+        this.administrator = administrator;
+    }
+
     public void setInvalidLicenses(String[] invalidLicenses) {
         this.invalidLicenses = invalidLicenses;
     }
@@ -93,5 +133,22 @@ public class Policy {
 
     public void setApiCacheTime(int apiCacheTime) {
         this.apiCacheTime = apiCacheTime;
+    }
+
+    @Override
+    public String toString() {
+        return "Policy{" +
+                "projectId='" + projectId + '\'' +
+                ", projectName='" + projectName + '\'' +
+                ", projectVersion='" + projectVersion + '\'' +
+                ", projectDescription='" + projectDescription + '\'' +
+                ", organization='" + organization + '\'' +
+                ", repository='" + repository + '\'' +
+                ", repositoryOwner='" + repositoryOwner + '\'' +
+                ", administrator='" + administrator + '\'' +
+                ", invalidLicenses=" + Arrays.toString(invalidLicenses) +
+                ", fail=" + fail +
+                ", apiCacheTime=" + apiCacheTime +
+                '}';
     }
 }

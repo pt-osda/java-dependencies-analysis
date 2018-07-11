@@ -2,8 +2,6 @@ package model.report;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import org.gradle.api.logging.Logger;
-
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -113,7 +111,7 @@ public class ReportDependencies implements Serializable {
     // <editor-fold desc="Override methods">
     @Override
     public String toString() {
-        return String.format("Title: %s, main version: %s, license: %s, hierarchy: %s, vulnerabilities: %s",
+        return String.format("Title: %s, main version: %s, license: %s, children: %s, vulnerabilities: %s",
                 this.title,
                 this.mainVersion,
                 this.licenses.toString(),

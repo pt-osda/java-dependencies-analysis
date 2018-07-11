@@ -19,6 +19,11 @@ public class ReportModel implements Serializable {
     @JsonProperty(value = "repoOwner")
     private String repositoryOwner;
 
+    private String admin;
+
+    @JsonProperty(value = "error_info")
+    private String errorInfo;
+
     private List<ReportDependencies> dependencies;
 
     public String getId() {
@@ -51,6 +56,14 @@ public class ReportModel implements Serializable {
 
     public String getRepositoryOwner() {
         return repositoryOwner;
+    }
+
+    public String getAdmin() {
+        return admin;
+    }
+
+    public String getErrorInfo() {
+        return errorInfo;
     }
 
     public List<ReportDependencies> getDependencies() {
@@ -89,32 +102,42 @@ public class ReportModel implements Serializable {
         this.repositoryOwner = repositoryOwner;
     }
 
+    public void setAdmin(String admin) {
+        this.admin = admin;
+    }
+
+    public void setErrorInfo(String errorInfo) {
+        this.errorInfo = errorInfo;
+    }
+
     public void setDependencies(List<ReportDependencies> dependencies) {
         this.dependencies = dependencies;
     }
 
     @Override
     public String toString() {
-        return "ReportModel{" +
-                "id='" + id + '\'' +
-                ", version='" + version + '\'' +
-                ", name='" + name + '\'' +
-                ", description='" + description + '\'' +
-                ", timestamp='" + timestamp + '\'' +
-                ", organization='" + organization + '\'' +
-                ", repository='" + repository + '\'' +
-                ", repository owner='" + repositoryOwner + '\'' +
-                ", dependencies=" + dependencies +
-                '}';
+        return String.format("Id: %s, version: %s, name: %s, description: %s, timestamp: %s, organization: %s, repository: %s, repository owner: %s, dependencies: %s",
+                id,
+                version,
+                name,
+                description,
+                timestamp,
+                organization,
+                repository,
+                repositoryOwner,
+                dependencies);
     }
 
     public ReportModel(Policy policy){
         id = policy.getProjectId();
-        version = "1.0.0";
+        version = policy.getProjectVersion();
         name = policy.getProjectName();
-        description = String.format("All dependencies for the project %s, including their licenses and vulnerabilities", name);
-        organization = policy.getOrganization() != null ? policy.getOrganization() : "No organization specified.";
-        repository = policy.getRepository() != null ? policy.getOrganization() : "No repository specified.";
-        repositoryOwner = policy.getRepositoryOwner() != null ? policy.getRepositoryOwner() : "No repository owner specified.";
+
+        description = policy.getProjectDescription() != null ? policy.getProjectDescription() : String.format("All dependencies for the project %s, including their licenses and vulnerabilities", name);
+        organization = policy.getOrganization();
+        repository = policy.getRepository();
+        repositoryOwner = policy.getRepositoryOwner();
+        admin = policy.getAdministrator();
+        errorInfo = "";
     }
 }

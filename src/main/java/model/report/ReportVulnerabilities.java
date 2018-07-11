@@ -73,7 +73,12 @@ public class ReportVulnerabilities implements Serializable {
 
     @Override
     public String toString() {
-        return String.format("Title: %s, id: %s, description: %s, references: %s, version: %s", title, id, description, Arrays.toString(references), Arrays.toString(versions));
+        return String.format("Title: %s, id: %s, description: %s, references: %s, version: %s",
+                title,
+                id,
+                description,
+                Arrays.toString(references),
+                Arrays.toString(versions));
     }
 
     public ReportVulnerabilities() {

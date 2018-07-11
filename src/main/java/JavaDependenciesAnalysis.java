@@ -7,6 +7,5 @@ public class JavaDependenciesAnalysis implements Plugin<Project> {
     public void apply(Project project) {
         Task validateDependencies = project.getTasks().create("validateDependencies", ValidateDependenciesTask.class);
         validateDependencies.setDescription("Validates the project's dependencies in terms of license and vulnerabilities.");
-        System.out.println(String.format("Is task enabled %s", validateDependencies.getEnabled()));
     }
 }
