@@ -21,12 +21,14 @@ public class APIQueries {
     //private static final String API_URL = "http://35.234.147.77/gradle/dependency/vulnerabilities";
     //private static final String API_REPORT_URL = "http://35.234.147.77/report";
     private static CloseableHttpClient httpClient;
+    private static String token;
 
     /**
      * Initializes the Client to be used in the execution of the program
      */
     public static void startClient(){
         httpClient = HttpClients.createDefault();
+        token = System.getenv("CENTRAL_SERVER_TOKEN");
     }
 
     /**
@@ -34,12 +36,13 @@ public class APIQueries {
      * <br>
      * The results are stored in the object representation of the report.
      * @param artifacts   The list of artifacts that represent the dependencies.
-     * @param reportModel   Th
-    // * @param threadWork    The reference to thread where the addition of the vulnerabilities to their dependencies in
-     //*                      the report model is done.
+     * @param reportModel   The report model where the license found will be added.
+     * @param apiCacheTime
+     * @param finalExecutor The reference to thread where the addition of the vulnerabilities to their dependencies in
+     *                      the report model is done.
      * @param logger    A reference to the plugin logger.
      */
-    public static void requestDependenciesVulnerabilities(List<Artifacts> artifacts, ReportModel reportModel, ExecutorService finalExecutor, Logger logger) {
+    public static void requestDependenciesVulnerabilities(List<Artifacts> artifacts, ReportModel reportModel, int apiCacheTime, ExecutorService finalExecutor, Logger logger) {
         CloseableHttpResponse response = null;
         try {
             logger.info("Request body {}", artifacts.toString());
@@ -50,8 +53,8 @@ public class APIQueries {
             HttpPost httpPost = new HttpPost(API_URL);
             httpPost.setEntity(new StringEntity(obj));
             httpPost.addHeader("Content-Type", "application/json");
-            httpPost.addHeader("Cache-Control", "max-age=500");
-            httpPost.addHeader("Authorization", "Bearer rui");
+            httpPost.addHeader("Cache-Control", "max-age=" + apiCacheTime);
+            httpPost.addHeader("Authorization", "Bearer " + token);
 
             logger.info("Object to write {}", obj);
 
@@ -123,7 +126,7 @@ public class APIQueries {
             HttpPost httpPost = new HttpPost(API_REPORT_URL);
             httpPost.setEntity(new StringEntity(report));
             httpPost.addHeader("Content-Type", "application/json");
-            httpPost.addHeader("Authorization", "Bearer rui");
+            httpPost.addHeader("Authorization", "Bearer " + token);
 
             logger.info("Object to write {}", report);
 

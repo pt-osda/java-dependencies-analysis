@@ -2,8 +2,8 @@ package model;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Policy {
     //<editor-fold desc="fields included in a policy file">
@@ -37,7 +37,7 @@ public class Policy {
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
     @JsonProperty(value = "invalid_licenses")
-    private String[] invalidLicenses = new String[0];
+    private List<String> invalidLicenses = new ArrayList<>();
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private boolean fail = false;
@@ -79,7 +79,7 @@ public class Policy {
         return administrator;
     }
 
-    public String[] getInvalidLicenses() {
+    public List<String> getInvalidLicenses() {
         return invalidLicenses;
     }
 
@@ -123,7 +123,7 @@ public class Policy {
         this.administrator = administrator;
     }
 
-    public void setInvalidLicenses(String[] invalidLicenses) {
+    public void setInvalidLicenses(List<String> invalidLicenses) {
         this.invalidLicenses = invalidLicenses;
     }
 
@@ -137,18 +137,19 @@ public class Policy {
 
     @Override
     public String toString() {
-        return "Policy{" +
-                "projectId='" + projectId + '\'' +
-                ", projectName='" + projectName + '\'' +
-                ", projectVersion='" + projectVersion + '\'' +
-                ", projectDescription='" + projectDescription + '\'' +
-                ", organization='" + organization + '\'' +
-                ", repository='" + repository + '\'' +
-                ", repositoryOwner='" + repositoryOwner + '\'' +
-                ", administrator='" + administrator + '\'' +
-                ", invalidLicenses=" + Arrays.toString(invalidLicenses) +
-                ", fail=" + fail +
-                ", apiCacheTime=" + apiCacheTime +
-                '}';
+        return String.format("project id: %s, project name: %s, project version: %s, project description: %s, " +
+                        "organization: %s, repository: %s, repository owner: %s, administrator: %s, invalid licenses: " +
+                        "%s, fail: %s, api cache time: %s",
+                projectId,
+                projectName,
+                projectVersion,
+                projectDescription,
+                organization,
+                repository,
+                repositoryOwner,
+                administrator,
+                invalidLicenses,
+                fail,
+                apiCacheTime);
     }
 }

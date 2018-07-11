@@ -2,11 +2,6 @@
 // First, apply the publishing plugin
 buildscript {
     // Variables
-    ext {
-        CurrentVersion = "1.0.0-SNAPSHOT"
-        CurrentGroup = "com.github.pt-osda.java-dependencies-analysis"
-    }
-
     repositories {
         mavenLocal()
         maven {
@@ -18,36 +13,10 @@ buildscript {
     }
 }
 
-plugins {
-    id "com.jfrog.bintray" version "1.7.3"
-}
-
-group CurrentGroup
-version CurrentVersion
-
 apply plugin: "java"
 apply plugin: "maven"
-apply plugin: "maven-publish"
-apply plugin: "signing"
 
 sourceCompatibility = 1.8
-
-bintray {
-    user = System.getenv("BINTRAY_USER")
-    key = System.getenv("BINTRAY_KEY")
-    publications = [ "mavenJava" ]
-    pkg {
-        repo = "pt-osda"
-        name = "java-dependencies-analysis"
-        licenses = [ "BSD-3-Clause" ]
-        vcsUrl = "https://github.com/pt-osda/java-dependencies-analysis.git"
-
-        version {
-            name = CurrentVersion
-            released = new Date()
-        }
-    }
-}
 
 apply plugin: "java-gradle-plugin"
 
@@ -63,66 +32,6 @@ task sourcesJar(type: Jar) {
 
 artifacts {
     archives javadocJar, sourcesJar
-}
-
-def doUploadArchives = project.hasProperty("ossrhUsername") && project.hasProperty("ossrhPassword")
-if (doUploadArchives) {
-    signing {
-        sign configurations.archives
-    }
-
-    uploadArchives {
-        repositories {
-            mavenDeployer {
-                beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
-
-                repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
-                    authentication(userName: ossrhUsername, password: ossrhPassword)
-                }
-
-                snapshotRepository(url: "https://oss.sonatype.org/content/repositories/snapshots/") {
-                    authentication(userName: ossrhUsername, password: ossrhPassword)
-                }
-
-                pom.project {
-                    name "OSDA - Open Source Dependencies Analysis"
-                    packaging 'jar'
-                    // optionally artifactId can be defined here
-                    description "Analyse Open Source dependencies in projects development. Aplication to analyse security and license aspects in Open Source project\'s dependencies, applicable to Java platform."
-                    url "https://github.com/pt-osda/java-dependencies-analysis"
-
-                    scm {
-                        connection "scm:git:git://github.com/pt-osda/java-dependencies-analysis.git"
-                        developerConnection "scm:git:ssh://github.com:pt-osda/java-dependencies-analysis.git"
-                        url "https://github.com/pt-osda/java-dependencies-analysis.git"
-                    }
-
-                    licenses {
-                        license {
-                            name "BSD 3-Clause License"
-                            url "https://opensource.org/licenses/BSD-3-Clause"
-                        }
-                    }
-
-                    developers {
-                        developer {
-                            id "RuiDTLima"
-                            name "Rui Diogo Tomás Lima"
-                            email "rui_lima24@hotmail.com"
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-publishing {
-    publications {
-        mavenJava(MavenPublication) {
-            from components.java
-        }
-    }
 }
 
 apply plugin: "com.gradle.plugin-publish"
@@ -154,9 +63,9 @@ pluginBundle {
 
     plugins {
         greetingsPlugin {
-            id = CurrentGroup
+            id = "com.github.pt-osda.java-dependencies-analysis"
             displayName = "Java Dependencies Analysis"
-            version = CurrentVersion
+            version = "1.0.0-SNAPSHOT"
         }
     }
 }

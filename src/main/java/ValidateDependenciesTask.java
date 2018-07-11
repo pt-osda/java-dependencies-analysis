@@ -4,11 +4,15 @@ import model.GradleArtifact;
 import model.Policy;
 import model.report.ReportDependencies;
 import model.report.ReportModel;
+import org.gradle.api.GradleException;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.internal.AbstractTask;
 import org.gradle.api.logging.Logger;
+import org.gradle.api.tasks.StopExecutionException;
 import org.gradle.api.tasks.TaskAction;
+
+import javax.security.auth.callback.Callback;
 import java.io.*;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
@@ -22,11 +26,7 @@ public class ValidateDependenciesTask extends AbstractTask {
     private ReportModel reportModel;
 
     @TaskAction
-    // TODO Add invalid licenses
-    // TODO add "token" for API access
     // TODO fail if true in policy and invalid licenses
-    // TODO add admin
-    // TODO add cache time
     public void validateDependencies(){
         Project project = getProject();
         logger = getLogger();
@@ -74,10 +74,10 @@ public class ValidateDependenciesTask extends AbstractTask {
         logger.info("Create threadWork.");
 
         executor.submit(() ->
-                DependenciesVulnerabilities.getVulnerabilities(reportModel, finalExecutor, logger)
+                DependenciesVulnerabilities.getVulnerabilities(reportModel, policy.getApiCacheTime(), finalExecutor, logger)
         );
 
-        DependenciesLicenses.findDependenciesLicenses(configurationContainer, reportModel, executor, finalExecutor, logger);
+        DependenciesLicenses.findDependenciesLicenses(configurationContainer, reportModel, policy, executor, finalExecutor, logger);
 
         executor.shutdown();
         try {
@@ -96,7 +96,7 @@ public class ValidateDependenciesTask extends AbstractTask {
         } catch (InterruptedException e) {
             logger.warn("An exception occurred while waiting for the shutdown of merge thread (thread responsible for the junction of the elements of reportModel {}.", e.getMessage()); // TODO handle
         }
-        
+
         String thisMoment = ZonedDateTime.now(ZoneOffset.UTC).format(DateTimeFormatter.ISO_INSTANT);
 
         reportModel.setTimestamp(thisMoment);
