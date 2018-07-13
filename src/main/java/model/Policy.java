@@ -150,6 +150,7 @@ public class Policy {
                 administrator,
                 invalidLicenses,
                 fail,
-                apiCacheTime);
+                apiCacheTime
+        );
     }
 }

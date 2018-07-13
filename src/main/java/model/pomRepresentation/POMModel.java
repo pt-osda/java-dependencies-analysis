@@ -6,7 +6,7 @@ import java.util.*;
 
 public class POMModel {
     //<editor-fold desc="Fields of xml representation">
-    private String schemaLocation;  // não está presente no model de maven
+    private String schemaLocation;  // not present in the maven model, but required by the deserializer
     private String modelVersion;
     private CustomParent parent;
     private String groupId;

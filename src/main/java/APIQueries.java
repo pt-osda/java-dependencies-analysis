@@ -16,10 +16,10 @@ import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
 
 public class APIQueries {
-    private static final String API_URL = "http://localhost:8080/gradle/dependency/vulnerabilities";
-    private static final String API_REPORT_URL = "http://localhost:8080/report";
-    //private static final String API_URL = "http://35.234.147.77/gradle/dependency/vulnerabilities";
-    //private static final String API_REPORT_URL = "http://35.234.147.77/report";
+    //private static final String API_URL = "http://localhost:8080/gradle/dependency/vulnerabilities";
+    //private static final String API_REPORT_URL = "http://localhost:8080/report";
+    private static final String API_URL = "http://35.234.147.77/gradle/dependency/vulnerabilities";
+    private static final String API_REPORT_URL = "http://35.234.147.77/report";
     private static CloseableHttpClient httpClient;
     private static String token;
 
@@ -37,7 +37,8 @@ public class APIQueries {
      * The results are stored in the object representation of the report.
      * @param artifacts   The list of artifacts that represent the dependencies.
      * @param reportModel   The report model where the license found will be added.
-     * @param apiCacheTime
+     * @param apiCacheTime  Indicates the time the cache in the API should be considered valid. This value is indicated
+     *                      in the policy.
      * @param finalExecutor The reference to thread where the addition of the vulnerabilities to their dependencies in
      *                      the report model is done.
      * @param logger    A reference to the plugin logger.
@@ -45,8 +46,6 @@ public class APIQueries {
     public static void requestDependenciesVulnerabilities(List<Artifacts> artifacts, ReportModel reportModel, int apiCacheTime, ExecutorService finalExecutor, Logger logger) {
         CloseableHttpResponse response = null;
         try {
-            logger.info("Request body {}", artifacts.toString());
-
             ObjectMapper mapper = new ObjectMapper();
             String obj = mapper.writeValueAsString(artifacts);
 
@@ -150,6 +149,7 @@ public class APIQueries {
 
     /**
      * Shutdowns the client used in the course of the programme
+     * @param logger    A reference to the plugin logger.
      */
     public static void finishClient(Logger logger){
         try {

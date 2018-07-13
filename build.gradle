@@ -2,6 +2,11 @@
 // First, apply the publishing plugin
 buildscript {
     // Variables
+    ext {
+        CurrentVersion = "1.0.1-SNAPSHOT"
+        CurrentGroup = "com.github.pt-osda.java-dependencies-analysis"
+    }
+
     repositories {
         mavenLocal()
         maven {
@@ -13,12 +18,16 @@ buildscript {
     }
 }
 
+group CurrentGroup
+version CurrentVersion
+
 apply plugin: "java"
 apply plugin: "maven"
+apply plugin: "maven-publish"
+apply plugin: "com.gradle.plugin-publish"
+apply plugin: "java-gradle-plugin"
 
 sourceCompatibility = 1.8
-
-apply plugin: "java-gradle-plugin"
 
 task javadocJar(type: Jar) {
     classifier = "javadoc"
@@ -34,16 +43,8 @@ artifacts {
     archives javadocJar, sourcesJar
 }
 
-apply plugin: "com.gradle.plugin-publish"
-// Apply other plugins here, e.g. java plugin for a plugin written in java or
-// the groovy plugin for a plugin written in groovy
-
-// If your plugin has any external java dependencies, Gradle will attempt to
-// downloaded them from JCenter for anyone using the plugins DSL
-// so you should probably use JCenter for dependency resolution in your own
-// project.
 repositories {
-    jcenter()
+    mavenCentral()
 }
 
 dependencies {
@@ -63,9 +64,9 @@ pluginBundle {
 
     plugins {
         greetingsPlugin {
-            id = "com.github.pt-osda.java-dependencies-analysis"
+            id = CurrentGroup
             displayName = "Java Dependencies Analysis"
-            version = "1.0.0-SNAPSHOT"
+            version = CurrentVersion
         }
     }
 }

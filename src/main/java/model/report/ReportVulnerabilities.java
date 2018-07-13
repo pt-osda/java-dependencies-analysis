@@ -80,16 +80,4 @@ public class ReportVulnerabilities implements Serializable {
                 Arrays.toString(references),
                 Arrays.toString(versions));
     }
-
-    public ReportVulnerabilities() {
-        this.title = "";
-        this.description = "";
-    }
-
-    public ReportVulnerabilities(String title, String description, String[] references, String[] versions) {
-        this.title = title;
-        this.description = description;
-        this.references = references;
-        this.versions = versions;
-    }
 }

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.io.Serializable;
 
 public class ReportLicense implements Serializable {
+    // <editor-fold desc="Fields used to describe a license in the report">
     /**
      * Indicates the name of the license found for the dependency
      * e.g MIT License
@@ -25,6 +26,7 @@ public class ReportLicense implements Serializable {
      * Indicates if the license is valid considering the policy indicated in the project.
      */
     private boolean valid;
+    // </editor-fold>
 
     public String getSpdxId() {
         return spdxId;

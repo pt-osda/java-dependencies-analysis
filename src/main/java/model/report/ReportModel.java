@@ -6,6 +6,7 @@ import java.io.Serializable;
 import java.util.List;
 
 public class ReportModel implements Serializable {
+    // <editor-fold desc="Fields used to represent the report">
     private String id;
     private String version;
     private String name;
@@ -25,7 +26,9 @@ public class ReportModel implements Serializable {
     private String errorInfo;
 
     private List<ReportDependencies> dependencies;
+    // </editor-fold>
 
+    // <editor-fold desc="Getters of fields">
     public String getId() {
         return id;
     }
@@ -69,7 +72,9 @@ public class ReportModel implements Serializable {
     public List<ReportDependencies> getDependencies() {
         return dependencies;
     }
+    // </editor-fold>
 
+    // <editor-fold desc="Setters of fields">
     public void setId(String id) {
         this.id = id;
     }
@@ -113,6 +118,7 @@ public class ReportModel implements Serializable {
     public void setDependencies(List<ReportDependencies> dependencies) {
         this.dependencies = dependencies;
     }
+    // </editor-fold>
 
     @Override
     public String toString() {

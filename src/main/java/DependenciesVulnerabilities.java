@@ -13,7 +13,8 @@ public class DependenciesVulnerabilities {
      * Passing to the requestDependenciesVulnerabilities method a list of artifacts that is the mapping of the list of
      * reported dependencies in the report model to an Artifact.
      * @param reportModel   The report model where the license found will be added.
-     * @param apiCacheTime
+     * @param apiCacheTime  Indicates the time the cache in the API should be considered valid. This value is indicated
+     *                      in the policy.
      * @param finalExecutor    The reference to the thread doing the mapping of the responses in the final model.
      * @param logger    A reference to the plugin logger.
      */

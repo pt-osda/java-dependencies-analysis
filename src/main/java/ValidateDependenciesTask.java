@@ -9,10 +9,7 @@ import org.gradle.api.Project;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.internal.AbstractTask;
 import org.gradle.api.logging.Logger;
-import org.gradle.api.tasks.StopExecutionException;
 import org.gradle.api.tasks.TaskAction;
-
-import javax.security.auth.callback.Callback;
 import java.io.*;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
@@ -26,8 +23,8 @@ public class ValidateDependenciesTask extends AbstractTask {
     private ReportModel reportModel;
 
     @TaskAction
-    // TODO fail if true in policy and invalid licenses
     public void validateDependencies(){
+        List<String> errorMessage = new ArrayList<>();
         Project project = getProject();
         logger = getLogger();
 
@@ -36,7 +33,6 @@ public class ValidateDependenciesTask extends AbstractTask {
         File policyFile = project.file(".osda");
         InputStream inJson = null;
 
-        // TODO check how to react when there is no policy file.
         try {
             inJson = new FileInputStream(policyFile);
             policy = new ObjectMapper().readValue(inJson, Policy.class);
@@ -53,7 +49,6 @@ public class ValidateDependenciesTask extends AbstractTask {
             }
         }
 
-        logger.info("Policy data: {}.", policy);
         int availableProcessors = Runtime.getRuntime().availableProcessors();
         logger.info("Running with {} processors.", availableProcessors);
 
@@ -68,23 +63,20 @@ public class ValidateDependenciesTask extends AbstractTask {
 
         getDependencies(configurationContainer);
 
-        logger.info("Report Model {}.", reportModel);
         APIQueries.startClient();
-
-        logger.info("Create threadWork.");
 
         executor.submit(() ->
                 DependenciesVulnerabilities.getVulnerabilities(reportModel, policy.getApiCacheTime(), finalExecutor, logger)
         );
 
-        DependenciesLicenses.findDependenciesLicenses(configurationContainer, reportModel, policy, executor, finalExecutor, logger);
+        DependenciesLicenses.findDependenciesLicenses(configurationContainer, reportModel, policy, errorMessage, executor, finalExecutor, logger);
 
         executor.shutdown();
         try {
             while(!executor.awaitTermination(500, TimeUnit.MILLISECONDS))
-                logger.info("Waiting for first shutdown"); // TODO check
+                logger.info("Waiting for first shutdown");
         } catch (InterruptedException e) {
-            logger.warn("An exception occurred while waiting for the shutdown of threadPool {}.", e.getMessage()); // TODO handle
+            logger.warn("An exception occurred while waiting for the shutdown of threadPool {}.", e.getMessage());
         }
 
         logger.info("End first shutdown");
@@ -94,7 +86,11 @@ public class ValidateDependenciesTask extends AbstractTask {
             while (!finalExecutor.awaitTermination(500, TimeUnit.MILLISECONDS))
                 logger.info("Waiting for second shutdown.");
         } catch (InterruptedException e) {
-            logger.warn("An exception occurred while waiting for the shutdown of merge thread (thread responsible for the junction of the elements of reportModel {}.", e.getMessage()); // TODO handle
+            logger.warn("An exception occurred while waiting for the shutdown of merge thread (thread responsible for the junction of the elements of reportModel {}.", e.getMessage());
+        }
+
+        if (!errorMessage.isEmpty()) {
+            throw new GradleException(errorMessage.get(0));
         }
 
         String thisMoment = ZonedDateTime.now(ZoneOffset.UTC).format(DateTimeFormatter.ISO_INSTANT);
@@ -115,7 +111,6 @@ public class ValidateDependenciesTask extends AbstractTask {
      */
     private void getDependencies(ConfigurationContainer configurationContainer) {
         getDirectDependencies(configurationContainer);
-
         getIndirectDependencies(configurationContainer);
     }
 
