@@ -10,7 +10,7 @@ To use this plugin it is required to add the following script snippet, for [Grad
 
 ```
 plugins {
-  id "com.github.pt-osda.java-dependencies-analysis" version "1.0.0"
+  id "com.github.pt-osda.java-dependencies-analysis" version "1.0.4"
 }
 ```
 
@@ -23,7 +23,7 @@ buildscript {
     }
   }
   dependencies {
-    classpath "gradle.plugin.com.github.pt-osda.java-dependencies-analysis:java-dependencies-analysis:1.0.0"
+    classpath "gradle.plugin.com.github.pt-osda.java-dependencies-analysis:java-dependencies-analysis:1.0.4"
   }
 }
 
