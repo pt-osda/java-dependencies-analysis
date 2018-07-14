@@ -92,4 +92,18 @@ public class CustomDependency {
         this.exclusions = exclusions;
     }
     //</editor-fold>
+
+    public CustomDependency(){
+        this.groupId = "";
+        this.artifactId = "";
+        this.version = "";
+        this.type = "";
+        this.classifier = "";
+        this.scope = "";
+        this.systemPath = "";
+        this.optional = "";
+    }
+
+    public CustomDependency(String empty) {
+    }
 }
