@@ -94,8 +94,15 @@ Once that is done the project must include a policy file named osda, which indic
 </p>
 </details>
 
+
+
+To have an admin the user of the plugin must create and account in the following link: http://35.234.147.77. There it is required to register an account and the username must be the one to be added to the admin field in the poliy file. Once that is done it is required to generate a token in the link: http://35.234.147.77/user. The generated token must be added as a environment variable with the name 
+**CENTRAL_SERVER_TOKEN**.
+
 # How it Works
 This plugin will install in the project a task, which will be responsible for the validation of the dependencies of the project. And as such every time that it is needed to validate the dependencies of the project all that is required is to run the following command in the project directory:
 ```
 ./gradlew validateDependencies
 ```
+
+Once the plugin finishes its execution a report will be produced and stored in a server. The server is acessible in the following link: http://35.234.147.77/
