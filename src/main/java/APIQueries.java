@@ -18,8 +18,8 @@ import java.util.stream.Collectors;
 public class APIQueries {
     //private static final String API_URL = "http://localhost:8080/gradle/dependency/vulnerabilities";
     //private static final String API_REPORT_URL = "http://localhost:8080/report";
-    private static final String API_URL = "http://35.234.147.77/gradle/dependency/vulnerabilities";
-    private static final String API_REPORT_URL = "http://35.234.147.77/report";
+    private static final String API_URL = "http://35.234.151.254/gradle/dependency/vulnerabilities";
+    private static final String API_REPORT_URL = "http://35.234.151.254/report";
     private static CloseableHttpClient httpClient;
     private static String token;
 
