@@ -3,7 +3,7 @@
 buildscript {
     // Variables
     ext {
-        CurrentVersion = "1.0.1-SNAPSHOT"
+        CurrentVersion = "1.0.4"
         CurrentGroup = "com.github.pt-osda.java-dependencies-analysis"
     }
 
