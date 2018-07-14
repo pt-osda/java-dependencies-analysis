@@ -30,7 +30,7 @@ buildscript {
 apply plugin: "com.github.pt-osda.java-dependencies-analysis"
 ```
 
-Once that is done the project must include a policy file named osda, which indicates certains attributes of the project and how the plugin must react to certain events in its execution. The file has the following schema:
+Once that is done the project **must** include a policy file named **.osda**, which indicates certains attributes of the project and how the plugin must react to certain events in its execution. The file has the following schema:
 
 <details><summary>Policy file structure</summary>
 <p>
