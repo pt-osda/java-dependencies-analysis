@@ -26,6 +26,8 @@ public class ReportModel implements Serializable {
     private String errorInfo;
 
     private List<ReportDependencies> dependencies;
+
+    private boolean successfulBuild;
     // </editor-fold>
 
     // <editor-fold desc="Getters of fields">
@@ -71,6 +73,10 @@ public class ReportModel implements Serializable {
 
     public List<ReportDependencies> getDependencies() {
         return dependencies;
+    }
+
+    public boolean isSuccessfulBuild() {
+        return successfulBuild;
     }
     // </editor-fold>
 
@@ -118,6 +124,10 @@ public class ReportModel implements Serializable {
     public void setDependencies(List<ReportDependencies> dependencies) {
         this.dependencies = dependencies;
     }
+
+    public void setSuccessfulBuild(boolean successfulBuild) {
+        this.successfulBuild = successfulBuild;
+    }
     // </editor-fold>
 
     @Override
@@ -145,5 +155,6 @@ public class ReportModel implements Serializable {
         repositoryOwner = policy.getRepositoryOwner();
         admin = policy.getAdministrator();
         errorInfo = "";
+        successfulBuild = true;
     }
 }

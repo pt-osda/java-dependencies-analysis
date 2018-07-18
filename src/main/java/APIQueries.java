@@ -1,5 +1,6 @@
 import com.fasterxml.jackson.databind.ObjectMapper;
 import model.Artifacts;
+import model.Policy;
 import model.VulnerabilitiesResult;
 import model.report.ReportDependencies;
 import model.report.ReportModel;
@@ -37,13 +38,13 @@ public class APIQueries {
      * The results are stored in the object representation of the report.
      * @param artifacts   The list of artifacts that represent the dependencies.
      * @param reportModel   The report model where the license found will be added.
-     * @param apiCacheTime  Indicates the time the cache in the API should be considered valid. This value is indicated
-     *                      in the policy.
+     * @param policy  The policy model that indicates how the plugin must operate.
+     * @param errorMessage  The list of error message to write the error to.
      * @param finalExecutor The reference to thread where the addition of the vulnerabilities to their dependencies in
      *                      the report model is done.
      * @param logger    A reference to the plugin logger.
      */
-    public static void requestDependenciesVulnerabilities(List<Artifacts> artifacts, ReportModel reportModel, int apiCacheTime, ExecutorService finalExecutor, Logger logger) {
+    public static void requestDependenciesVulnerabilities(List<Artifacts> artifacts, ReportModel reportModel, Policy policy, List<String> errorMessage, ExecutorService finalExecutor, Logger logger) {
         CloseableHttpResponse response = null;
         try {
             ObjectMapper mapper = new ObjectMapper();
@@ -52,7 +53,7 @@ public class APIQueries {
             HttpPost httpPost = new HttpPost(API_URL);
             httpPost.setEntity(new StringEntity(obj));
             httpPost.addHeader("Content-Type", "application/json");
-            httpPost.addHeader("Cache-Control", "max-age=" + apiCacheTime);
+            httpPost.addHeader("Cache-Control", "max-age=" + policy.getApiCacheTime());
             httpPost.addHeader("Authorization", "Bearer " + token);
 
             logger.info("Object to write {}", obj);
@@ -67,9 +68,18 @@ public class APIQueries {
             if (statusCode == 200) {
                 VulnerabilitiesResult[] vulnerabilities = mapper.readValue(response.getEntity().getContent(), VulnerabilitiesResult[].class);
 
-                logger.info("Vulnerabilities {}", (Object[]) vulnerabilities);
+                logger.info("Vulnerabilities {}", (Object) vulnerabilities);
 
                 finalExecutor.submit(() -> {
+                    if (vulnerabilities.length > 0 && policy.isFail()) {
+                        String message = String.format("There were found %s vulnerabilities and the policy indicates that the build process should fail.", vulnerabilities.length);
+                        errorMessage.add(message);
+                        logger.info("{}\n\n\n", message);
+
+                        reportModel.setErrorInfo(message);
+                        reportModel.setSuccessfulBuild(false);
+                    }
+
                     logger.info("Running adding vulnerabilities.");
                     for (VulnerabilitiesResult vulnerability : vulnerabilities) {
                         logger.info("Entity {}\n", vulnerability);

@@ -1,4 +1,5 @@
 import model.Artifacts;
+import model.Policy;
 import model.report.ReportDependencies;
 import model.report.ReportModel;
 import org.gradle.api.logging.Logger;
@@ -13,13 +14,13 @@ public class DependenciesVulnerabilities {
      * Passing to the requestDependenciesVulnerabilities method a list of artifacts that is the mapping of the list of
      * reported dependencies in the report model to an Artifact.
      * @param reportModel   The report model where the license found will be added.
-     * @param apiCacheTime  Indicates the time the cache in the API should be considered valid. This value is indicated
-     *                      in the policy.
+     * @param policy  The policy model that indicates how the plugin must operate.
+     * @param errorMessage  The list of error message to write the error to.
      * @param finalExecutor    The reference to the thread doing the mapping of the responses in the final model.
      * @param logger    A reference to the plugin logger.
      */
-    public static void getVulnerabilities(ReportModel reportModel, int apiCacheTime, ExecutorService finalExecutor, Logger logger) {
-        APIQueries.requestDependenciesVulnerabilities(produceRequestBody(reportModel.getDependencies()), reportModel, apiCacheTime, finalExecutor, logger);
+    public static void getVulnerabilities(ReportModel reportModel, Policy policy, List<String> errorMessage, ExecutorService finalExecutor, Logger logger) {
+        APIQueries.requestDependenciesVulnerabilities(produceRequestBody(reportModel.getDependencies()), reportModel, policy, errorMessage, finalExecutor, logger);
     }
 
     /**

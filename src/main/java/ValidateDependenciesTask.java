@@ -66,10 +66,10 @@ public class ValidateDependenciesTask extends AbstractTask {
         APIQueries.startClient();
 
         executor.submit(() ->
-                DependenciesVulnerabilities.getVulnerabilities(reportModel, policy.getApiCacheTime(), finalExecutor, logger)
+                DependenciesVulnerabilities.getVulnerabilities(reportModel, policy, errorMessage, finalExecutor, logger)
         );
 
-        DependenciesLicenses.findDependenciesLicenses(configurationContainer, reportModel, policy, errorMessage, executor, finalExecutor, logger);
+        DependenciesLicenses.findDependenciesLicenses(configurationContainer, reportModel, policy, executor, finalExecutor, logger);
 
         executor.shutdown();
         try {
@@ -89,17 +89,17 @@ public class ValidateDependenciesTask extends AbstractTask {
             logger.warn("An exception occurred while waiting for the shutdown of merge thread (thread responsible for the junction of the elements of reportModel {}.", e.getMessage());
         }
 
-        if (!errorMessage.isEmpty()) {
-            throw new GradleException(errorMessage.get(0));
-        }
-
         String thisMoment = ZonedDateTime.now(ZoneOffset.UTC).format(DateTimeFormatter.ISO_INSTANT);
 
         reportModel.setTimestamp(thisMoment);
 
-        logger.info("Finish execution.");
         APIQueries.sendReport(reportModel, logger);
         APIQueries.finishClient(logger);
+
+        logger.info("Sending report.");
+        if (!errorMessage.isEmpty()) {
+            throw new GradleException(errorMessage.get(0));
+        }
     }
 
     /**

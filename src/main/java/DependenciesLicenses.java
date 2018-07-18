@@ -16,7 +16,6 @@ import java.io.InputStreamReader;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.stream.Collectors;
@@ -34,13 +33,12 @@ public class DependenciesLicenses {
      * @param reportModel   The report model that represents every information found.
      * @param policy    The object that represents the policy of the project, indicating values necessary to the correct
      *                  function of the plugin.
-     * @param errorMessage  A list that will contain the messages indicating the invalid licenses obtained.
      * @param executor  The reference to the threadPool where the analysis of a JarFile will happen
      * @param finalExecutor The reference to the thread that is responsible for write any changes found in the
      *                      reportModel.
      * @param logger    A reference to the plugin logger.
      */
-    public static void findDependenciesLicenses(ConfigurationContainer configurationContainer, ReportModel reportModel, Policy policy, List<String> errorMessage, ExecutorService executor, ExecutorService finalExecutor, Logger logger){
+    public static void findDependenciesLicenses(ConfigurationContainer configurationContainer, ReportModel reportModel, Policy policy, ExecutorService executor, ExecutorService finalExecutor, Logger logger){
         fillLicenses();
 
         for (Configuration configuration : configurationContainer){
@@ -64,7 +62,7 @@ public class DependenciesLicenses {
                         PROCESSED_FILES.add(jarFile.getName());
                         executor.submit(() -> {
                             try {
-                                findRequiredFiles(absoluteFilePath, reportModel, policy, errorMessage, finalExecutor, logger);
+                                findRequiredFiles(absoluteFilePath, reportModel, policy, finalExecutor, logger);
                             } catch (IOException e) {
                                 logger.warn("An exception occurred when attempting to get the Jar file from path {}. The exception was {}", absoluteFilePath, e.getMessage());
                             }
@@ -85,12 +83,11 @@ public class DependenciesLicenses {
      * @param reportModel   The report model that represents every information found.
      * @param policy    The object that represents the policy of the project, indicating values necessary to the correct
      *                  function of the plugin.
-     * @param errorMessage  A list that will contain the messages indicating the invalid licenses obtained.
      * @param finalExecutor    The reference to the thread that is responsible for write any changes found in the
      *                         reportModel.
      * @param logger    A reference to the plugin logger.
      */
-    private static void findRequiredFiles(String absoluteFilePath, ReportModel reportModel, Policy policy, List<String> errorMessage, ExecutorService finalExecutor, Logger logger) throws IOException {
+    private static void findRequiredFiles(String absoluteFilePath, ReportModel reportModel, Policy policy, ExecutorService finalExecutor, Logger logger) throws IOException {
         JarFile jar = new JarFile(absoluteFilePath);
         final Enumeration<JarEntry> entries = jar.entries();
         int files = 0;
@@ -103,12 +100,12 @@ public class DependenciesLicenses {
                     files++;
                     logger.info("POM file found: {}.", entry.getName());
                     try {
-                        validatePomFile(jar, entry.getName(), reportModel, policy, errorMessage, finalExecutor, logger);
+                        validatePomFile(jar, entry.getName(), reportModel, policy, finalExecutor, logger);
                     } catch(IOException e) {
                         logger.warn("An IOException happened while validating the pom object {}.", e.getMessage());
                     }
                     try {
-                        validateLicenseFromFile(jar, entry.getName(), reportModel, policy, errorMessage, finalExecutor, logger);
+                        validateLicenseFromFile(jar, entry.getName(), reportModel, policy, finalExecutor, logger);
                     } catch (IOException e) {
                         logger.warn("An IOException happened while validating the pom file {}.", e.getMessage());
                     }
@@ -117,7 +114,7 @@ public class DependenciesLicenses {
                     files++;
                     logger.info("LICENSE File found: {}.", entry.getName());
                     try {
-                        validateLicenseFromFile(jar, entry.getName(), reportModel, policy, errorMessage, finalExecutor, logger);
+                        validateLicenseFromFile(jar, entry.getName(), reportModel, policy, finalExecutor, logger);
                     } catch (IOException e) {
                         logger.warn("An IOException happened while validating the License file {}.", e.getMessage());
                     }
@@ -146,12 +143,11 @@ public class DependenciesLicenses {
      * @param reportModel   The report model where the license found will be added.
      * @param policy    The object that represents the policy of the project, indicating values necessary to the correct
      *                  function of the plugin.
-     * @param errorMessage  A list that will contain the messages indicating the invalid licenses obtained.
      * @param finalExecutor    The thread where the addition of the license will be done.
      * @param logger    A reference to the plugin logger.
      * @throws IOException thrown by xmlMapper.readValue
      */
-    private static void validatePomFile(JarFile jar, String pomFile, ReportModel reportModel, Policy policy, List<String> errorMessage, ExecutorService finalExecutor, Logger logger) throws IOException {
+    private static void validatePomFile(JarFile jar, String pomFile, ReportModel reportModel, Policy policy, ExecutorService finalExecutor, Logger logger) throws IOException {
         ZipEntry entryPomFile = jar.getEntry(pomFile);
 
         BufferedReader reader = new BufferedReader(new InputStreamReader(jar.getInputStream(entryPomFile)));
@@ -170,18 +166,9 @@ public class DependenciesLicenses {
             else if (KNOWN_LICENSE.containsKey(license.getUrl()))
                 licenseFound = KNOWN_LICENSE.get(license.getUrl());
 
-            if (!licenseFound.equals("")){
-                boolean valid = policy.getInvalidLicenses().contains(licenseFound);
-
+            if (!licenseFound.equals("")) {
                 String addingLicense = licenseFound;
                 finalExecutor.submit(() -> {
-                    if (valid && policy.isFail()){
-                        String message = String.format("The license %s is considered invalid according to the policy.", addingLicense);
-                        errorMessage.add(message);
-                        logger.info("{}\n\n\n", message);
-                        return;
-                    }
-
                     List<ReportDependencies> reportDependency = reportModel.getDependencies()
                             .stream()
                             .filter(reportDependencies -> jar.getName().contains(reportDependencies.getTitle()))
@@ -190,7 +177,7 @@ public class DependenciesLicenses {
                     ReportLicense reportLicense = new ReportLicense();
                     reportLicense.setSpdxId(addingLicense);
                     reportLicense.setSource("Tag License from pom file.");
-                    reportLicense.setValid(!valid);
+                    reportLicense.setValid(!policy.getInvalidLicenses().contains(addingLicense));
 
                     reportDependency.get(0).addLicense(reportLicense);
                 });
@@ -205,12 +192,11 @@ public class DependenciesLicenses {
      * @param reportModel   The report model where the license found will be added.
      * @param policy    The object that represents the policy of the project, indicating values necessary to the correct
      *                  function of the plugin.
-     * @param errorMessage  A list that will contain the messages indicating the invalid licenses obtained.
      * @param finalExecutor    The thread where the addition of the license will be done.
      * @param logger    A reference to the plugin logger.
      * @throws IOException thrown by read.readLine
      */
-    private static void validateLicenseFromFile(JarFile jarFile, String fileName, ReportModel reportModel, Policy policy, List<String> errorMessage, ExecutorService finalExecutor, Logger logger) throws IOException {
+    private static void validateLicenseFromFile(JarFile jarFile, String fileName, ReportModel reportModel, Policy policy, ExecutorService finalExecutor, Logger logger) throws IOException {
         ZipEntry entryFile = jarFile.getEntry(fileName);
 
         BufferedReader reader = new BufferedReader(new InputStreamReader(jarFile.getInputStream(entryFile)));
@@ -221,16 +207,8 @@ public class DependenciesLicenses {
                 if (line.contains(keysLicense)) {
                   logger.info("Line contains key: {}", keysLicense);
                   String license = KNOWN_LICENSE.get(keysLicense);
-                  boolean valid = policy.getInvalidLicenses().contains(license);
 
                   finalExecutor.submit(() -> {
-                      if (valid && policy.isFail()){
-                          String message = String.format("The license %s is considered invalid according to the policy.", license);
-                          errorMessage.add(message);
-                          logger.info("{}\n\n\n", message);
-                          return;
-                      }
-
                       logger.info("Jar file name {}", jarFile.getName());
 
                       List<ReportDependencies> reportDependency = reportModel.getDependencies()
@@ -248,7 +226,7 @@ public class DependenciesLicenses {
                       ReportLicense reportLicense = new ReportLicense();
                       reportLicense.setSpdxId(license);
                       reportLicense.setSource(String.format("Indicated in %s file as %s", fileName, keysLicense));
-                      reportLicense.setValid(!valid);
+                      reportLicense.setValid(!policy.getInvalidLicenses().contains(license));
 
                       logger.info("Current licenses {}", reportDependency.get(0).getLicenses().toString());
                       logger.info("Writing license number {} to {}", reportDependency.get(0).getLicenses().size() + 1, reportDependency.get(0).getTitle());
