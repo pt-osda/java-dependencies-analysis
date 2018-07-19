@@ -6,47 +6,99 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Policy {
-    //<editor-fold desc="fields included in a policy file">
+    // <editor-fold desc="fields included in a policy file">
+    /**
+     * The id of the project where the policy is included.
+     * <br>
+     * Mandatory element in the policy file.
+     */
     @JsonProperty(value = "project_id")
     private String projectId;
 
+    /**
+     * The name of the project where the policy is included.
+     * <br>
+     * Mandatory element in the policy file.
+     */
     @JsonProperty(value = "project_name")
     private String projectName;
 
+    /**
+     * The version of the project where the policy is included.
+     * <br>
+     * Optional element in the policy file.
+     */
     @JsonInclude(JsonInclude.Include.NON_NULL)
     @JsonProperty(value = "project_version")
     private String projectVersion;
 
+    /**
+     * A description of the project where the policy is included.
+     * <br>
+     * Optional element in the policy file.
+     */
     @JsonInclude(JsonInclude.Include.NON_NULL)
     @JsonProperty(value = "project_description")
     private String projectDescription;
 
+    /**
+     * The organization that the project, where the policy is included, belongs to.
+     * <br>
+     * Optional element in the policy file.
+     */
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private String organization;
 
+    /**
+     * The repository that the project, where the policy is included, belongs to.
+     * <br>
+     * Optional element in the policy file.
+     */
     @JsonInclude(JsonInclude.Include.NON_NULL)
     @JsonProperty(value = "repo")
     private String repository;
 
+    /**
+     * The owner of the repository that the project, where the policy is included, belongs to.
+     * <br>
+     * Optional element in the policy file.
+     */
     @JsonInclude(JsonInclude.Include.NON_NULL)
     @JsonProperty(value = "repo_owner")
     private String repositoryOwner;
 
+    /**
+     * The username of the administrator of the project where the policy is included.
+     * <br>
+     * Mandatory element in the policy file.
+     */
     @JsonProperty(value = "admin")
     private String administrator;
 
+    /**
+     * A list of licenses deemed invalid for the project where the policy file is included.
+     * <br>
+     * Optional element in the policy file.
+     */
     @JsonInclude(JsonInclude.Include.NON_NULL)
     @JsonProperty(value = "invalid_licenses")
     private List<String> invalidLicenses = new ArrayList<>();
 
+    /**
+     * Indicates if the build process should fail in case any vulnerability is found.
+     */
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private boolean fail = false;
 
+    /**
+     * Indicates the time that the Web API cache should be considered valid.
+     */
     @JsonInclude(JsonInclude.Include.NON_NULL)
     @JsonProperty(value = "api_cache_time")
     private int apiCacheTime = 0;
-    //</editor-fold>
+    // </editor-fold>
 
+    // <editor-fold desc="Getter of fields">
     public String getProjectId() {
         return projectId;
     }
@@ -90,7 +142,9 @@ public class Policy {
     public int getApiCacheTime() {
         return apiCacheTime;
     }
+    // </editor-fold>
 
+    // <editor-fold desc="Setters of fields">
     public void setProjectId(String projectId) {
         this.projectId = projectId;
     }
@@ -134,6 +188,7 @@ public class Policy {
     public void setApiCacheTime(int apiCacheTime) {
         this.apiCacheTime = apiCacheTime;
     }
+    // </editor-fold>
 
     @Override
     public String toString() {

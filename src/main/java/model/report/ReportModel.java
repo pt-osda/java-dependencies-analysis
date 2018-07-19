@@ -7,26 +7,89 @@ import java.util.List;
 
 public class ReportModel implements Serializable {
     // <editor-fold desc="Fields used to represent the report">
+    /**
+     * The id of the of the project the report gives information about.
+     * <br>
+     * Information obtained from the policy file.
+     */
     private String id;
+
+    /**
+     * The version of the project the report gives information about.
+     * <br>
+     * Information obtained from the policy file.
+     */
     private String version;
+
+    /**
+     * The name of the project the report gives information about.
+     * <br>
+     * Information obtained from the policy file.
+     */
     private String name;
+
+    /**
+     * A description about the project the report gives information about.
+     * <br>
+     * Information might be obtained from the policy file if it is provided.
+     */
     private String description;
+
+    /**
+     * The time when the report was produced.
+     * <br>
+     * Information obtained at the end of the plugins task.
+     */
     private String timestamp;
+
+    /**
+     * The organization that the project belongs to.
+     * <br>
+     * Information might be obtained from the policy file if it is provided.
+     */
     private String organization;
 
+    /**
+     * The report the project belongs to.
+     * <br>
+     * Information might be obtained from the policy file if it is provided.
+     */
     @JsonProperty(value = "repo")
     private String repository;
 
+    /**
+     * The owner of the repository this project belongs to.
+     * <br>
+     * Information might be obtained from the policy file if it is provided.
+     */
     @JsonProperty(value = "repoOwner")
     private String repositoryOwner;
 
-    private String admin;
+    /**
+     * The username of the administrator of this project.
+     * <br>
+     * Information obtained from the policy file.
+     */
+    private String administrator;
 
+    /**
+     * An error obtained during the execution of the plugin.
+     * <br>
+     * Might represent an error that happened while trying to obtain the vulnerabilities from an external Web API or that
+     * the build failed, as indicated in the policy file.
+     */
     @JsonProperty(value = "error_info")
     private String errorInfo;
 
+    /**
+     * The list of dependencies the project uses.
+     */
     private List<ReportDependencies> dependencies;
 
+    /**
+     * Indicates if the plugins task finish successfully.
+     */
+    @JsonProperty(value = "successful_build")
     private boolean successfulBuild;
     // </editor-fold>
 
@@ -63,8 +126,8 @@ public class ReportModel implements Serializable {
         return repositoryOwner;
     }
 
-    public String getAdmin() {
-        return admin;
+    public String getAdministrator() {
+        return administrator;
     }
 
     public String getErrorInfo() {
@@ -113,8 +176,8 @@ public class ReportModel implements Serializable {
         this.repositoryOwner = repositoryOwner;
     }
 
-    public void setAdmin(String admin) {
-        this.admin = admin;
+    public void setAdministrator(String administrator) {
+        this.administrator = administrator;
     }
 
     public void setErrorInfo(String errorInfo) {
@@ -153,7 +216,7 @@ public class ReportModel implements Serializable {
         organization = policy.getOrganization();
         repository = policy.getRepository();
         repositoryOwner = policy.getRepositoryOwner();
-        admin = policy.getAdministrator();
+        administrator = policy.getAdministrator();
         errorInfo = "";
         successfulBuild = true;
     }

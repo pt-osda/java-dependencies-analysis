@@ -4,9 +4,27 @@ import java.io.Serializable;
 
 public class Artifacts implements Serializable {
     //<editor-fold desc="Fields of the objects send to API">
+    /**
+     * The project manager of the current dependency represented as an artifact.
+     * <br>
+     * Since this plugin is meant to run in a Gradle build process its value is always "maven", which is the package
+     * manager of Gradle.
+     */
     private String pm;
+
+    /**
+     * The name, artifact Id, of the current dependency represented as an artifact
+     */
     private String name;
+
+    /**
+     * The version of the current dependency represented as an artifact
+     */
     private String version;
+
+    /**
+     * The group Id of the current dependency represented as an artifact
+     */
     private String group;
     //</editor-fold>
 

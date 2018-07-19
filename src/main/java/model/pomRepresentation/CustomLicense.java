@@ -41,4 +41,9 @@ public class CustomLicense {
         this.comments = comments;
     }
     //</editor-fold>
+
+    @Override
+    public String toString() {
+        return String.format("name: %s, url: %s, distribution: %s, comments: %s", name, url, distribution, comments);
+    }
 }

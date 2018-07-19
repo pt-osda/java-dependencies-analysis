@@ -5,10 +5,29 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class GradleArtifact {
+    /**
+     * Indicates the parent of the artifact.
+     */
     private final GradleArtifact parent;
+
+    /**
+     * Indicates all the children of the artifact.
+     */
     private final Set<GradleArtifact> children;
+
+    /**
+     * Indicates the group Id of the artifact.
+     */
     private final String group;
+
+    /**
+     * Indicates the name, artifactId, of the artifact.
+     */
     private final String name;
+
+    /**
+     * Indicates the version of the artifact.
+     */
     private final String version;
 
     public GradleArtifact getParent() {
