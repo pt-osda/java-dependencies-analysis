@@ -6,6 +6,7 @@ import model.report.ReportDependencies;
 import model.report.ReportModel;
 import org.gradle.api.GradleException;
 import org.gradle.api.Project;
+import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.internal.AbstractTask;
 import org.gradle.api.logging.Logger;
@@ -115,7 +116,8 @@ public class ValidateDependenciesTask extends AbstractTask {
     }
 
     /**
-     * Creates in the report object all the direct dependencies in the project.
+     * Creates in the report object all the direct dependencies in the project from the configurations that can be
+     * resolved.
      * <br>
      * This dependencies are the ones specified in the build.gradle file
      * @param configurationContainer   reference to obtain the configurations of the project. That is their artifacts
@@ -125,6 +127,8 @@ public class ValidateDependenciesTask extends AbstractTask {
         List<ReportDependencies> foundDependencies = new LinkedList<>();
 
         configurationContainer
+                .stream()
+                .filter(Configuration::isCanBeResolved)
                 .forEach(configuration -> {
                     logger.info("Configuration {}", configuration.getName());
                     configuration.getDependencies()
@@ -145,13 +149,14 @@ public class ValidateDependenciesTask extends AbstractTask {
 
     /**
      * Prepares the search for the transitive dependencies of the project, converting the ResolvedDependencies found in
-     * the project configuration to the Gradle Artifact representation.
+     * the project configuration that can be resolved to the Gradle Artifact representation.
      * @param configurationContainer   reference to obtain the configurations of the project. That is their artifacts
      *                                 and  dependencies
      */
     private void getIndirectDependencies(ConfigurationContainer configurationContainer) {
         Set<GradleArtifact> gradleArtifacts = configurationContainer
                 .stream()
+                .filter(Configuration::isCanBeResolved)
                 .flatMap(configuration -> configuration.getResolvedConfiguration().getFirstLevelModuleDependencies().stream())
                 .distinct()
                 .map(resolvedDependency -> new GradleArtifact(null, resolvedDependency))

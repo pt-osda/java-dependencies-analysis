@@ -27,7 +27,8 @@ public class DependenciesLicenses {
 
     /**
      * Main method for the search of the licenses of the project dependencies. After preparing the map of licenses to
-     * their representation, the configurations of the project will be search for the jar files of the dependencies.
+     * their representation, the configurations of the project that can be resolved will be searched for the jar files
+     * of the dependencies.
      * @param configurationContainer    reference to obtain the configurations of the project. That is their artifacts
      *                                  and  dependencies
      * @param reportModel   The report model that represents every information found.
@@ -41,40 +42,42 @@ public class DependenciesLicenses {
     public static void findDependenciesLicenses(ConfigurationContainer configurationContainer, ReportModel reportModel, Policy policy, ExecutorService executor, ExecutorService finalExecutor, Logger logger){
         fillLicenses();
 
-        for (Configuration configuration : configurationContainer){
-            logger.info("Running for configuration {}.", configuration.getName());
-            Set<File> files = configuration.resolve();
+        configurationContainer.stream().filter(Configuration::isCanBeResolved)
+                .forEach(configuration -> {
+                    logger.info("Running for configuration {}.", configuration.getName());
+                    Set<File> files = configuration.resolve();
 
-            logger.info("Beginning to get all configuration files.");
+                    logger.info("Beginning to get all configuration files.");
 
-            for (File currentFile : files) {
-                String absoluteFilePath = currentFile.getAbsolutePath();
-                logger.info("\n\nThe current file is {}.", absoluteFilePath);
+                    for (File currentFile : files) {
+                        String absoluteFilePath = currentFile.getAbsolutePath();
+                        logger.info("\n\nThe current file is {}.", absoluteFilePath);
 
-                try(JarFile jarFile = new JarFile(absoluteFilePath)) {
-                    logger.info("Reading jar file.");
+                        try (JarFile jarFile = new JarFile(absoluteFilePath)) {
+                            logger.info("Reading jar file.");
 
-                    logger.info("JarFile name {}.", jarFile.getName());
+                            logger.info("JarFile name {}.", jarFile.getName());
 
-                    if (!PROCESSED_FILES.contains(jarFile.getName())) {
-                        logger.info("Processing.");
+                            if (!PROCESSED_FILES.contains(jarFile.getName())) {
+                                logger.info("Processing.");
 
-                        PROCESSED_FILES.add(jarFile.getName());
-                        executor.submit(() -> {
-                            try {
-                                findRequiredFiles(absoluteFilePath, reportModel, policy, finalExecutor, logger);
-                            } catch (IOException e) {
-                                logger.warn("An exception occurred when attempting to get the Jar file from path {}. The exception was {}", absoluteFilePath, e.getMessage());
+                                PROCESSED_FILES.add(jarFile.getName());
+                                executor.submit(() -> {
+                                    try {
+                                        findRequiredFiles(absoluteFilePath, reportModel, policy, finalExecutor, logger);
+                                    } catch (IOException e) {
+                                        logger.warn("An exception occurred when attempting to get the Jar file from path {}. The exception was {}", absoluteFilePath, e.getMessage());
+                                    }
+                                });
                             }
-                        });
+                        } catch (Exception e) {
+                            logger.warn("Occurred an exception when attempting to process a jar file in search of a license file, {}.", e.getMessage());
+                        }
                     }
-                } catch (Exception e) {
-                    logger.warn("Occurred an exception when attempting to process a jar file in search of a license file, {}.", e.getMessage());
-                }
-            }
 
-            logger.info("All configuration files were shown.");
-        }
+                    logger.info("All configuration files were shown.");
+                }
+        );
     }
 
     /**
