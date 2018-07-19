@@ -47,7 +47,7 @@ public class DependenciesLicenses {
                     logger.info("Running for configuration {}.", configuration.getName());
                     Set<File> files = configuration.resolve();
 
-                    logger.info("Beginning to get all configuration files.");
+                    logger.info("Beginning to get all {} configuration files.", files.size());
 
                     for (File currentFile : files) {
                         String absoluteFilePath = currentFile.getAbsolutePath();
@@ -78,6 +78,7 @@ public class DependenciesLicenses {
                     logger.info("All configuration files were shown.");
                 }
         );
+        PROCESSED_FILES.clear();
     }
 
     /**
