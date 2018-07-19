@@ -70,6 +70,7 @@ public class ReportModel implements Serializable {
      * <br>
      * Information obtained from the policy file.
      */
+    @JsonProperty(value = "admin")
     private String administrator;
 
     /**

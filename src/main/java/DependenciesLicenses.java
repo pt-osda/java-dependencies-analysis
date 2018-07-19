@@ -156,7 +156,7 @@ public class DependenciesLicenses {
         xmlMapper.configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true);
         POMModel pomModel = xmlMapper.readValue(reader, POMModel.class);
 
-        logger.info("Pom Model licenses: {}", pomModel.getLicenses());
+        logger.info("Pom Model licenses: {}", pomModel.getLicenses().toString());
 
         for (CustomLicense license : pomModel.getLicenses()) {
             String licenseFound = "";
